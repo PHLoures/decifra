@@ -284,12 +284,20 @@ button { font: inherit; color: inherit; }
 .area { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 16px 12px 6px; }
 /* --peca registrada como comprimento para poder animar a mudança de tamanho */
 @property --peca { syntax: "<length>"; inherits: true; initial-value: 56px; }
-.tabuleiros { display: grid; gap: calc(var(--vao) * 4); align-items: start; transition: --peca .35s ease; }
+.tabuleiros { display: grid; gap: var(--gap-tab, 0px); grid-template-columns: repeat(var(--cols, 1), auto); align-items: start; transition: --peca .35s ease; }
 .tabuleiros:not([data-n="1"]) .linha.oculta { display: none; }
 .area:has(.tabuleiros:not([data-n="1"])) { align-items: flex-start; }
-.tabuleiros[data-n="2"], .tabuleiros[data-n="4"] { grid-template-columns: repeat(2, auto); }
 .tabuleiros.carregando { opacity: .4; }
 .tabuleiro { display: grid; gap: var(--vao); align-content: start; }
+/* Dueto/Quarteto: cada palavra num painel; o painel acende em verde quando ela é decifrada */
+.tabuleiros:not([data-n="1"]) .tabuleiro {
+  padding: var(--pad-tab, 0px);
+  background: rgba(14, 24, 56, .55);
+  border: 1px solid rgba(36, 54, 110, .75);
+  border-radius: calc(var(--peca) * .18 + var(--pad-tab, 0px));
+  transition: border-color .3s, box-shadow .3s;
+}
+.tabuleiros:not([data-n="1"]) .tabuleiro.resolvido { border-color: var(--certa); box-shadow: 0 0 18px var(--certa-brilho), inset 0 0 14px var(--certa-fundo); }
 .linha { display: grid; grid-template-columns: repeat(var(--colunas), var(--peca)); gap: var(--vao); }
 /* Linhas futuras não aparecem: o tabuleiro vai se formando conforme você joga */
 .linha.oculta { visibility: hidden; }
@@ -404,6 +412,7 @@ button { font: inherit; color: inherit; }
 .tecla .partes { position: absolute; inset: 0; display: grid; }
 .tecla .partes[data-n="2"] { grid-template-columns: 1fr 1fr; }
 .tecla .partes[data-n="4"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.teclado[data-layout="colunas"] .tecla .partes[data-n="4"] { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; }
 .tecla .partes i.certa { background: var(--certa); opacity: .55; }
 .tecla .partes i.lugar { background: var(--lugar); opacity: .55; }
 .tecla .partes i.errada { background: rgba(6, 11, 28, .75); }

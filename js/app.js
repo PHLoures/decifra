@@ -262,26 +262,51 @@
     if (!info) return;
     const area = $("#area");
     const n = info.palavras;
-    const colunas = n === 1 ? 1 : 2;
-    const fileiras = n === 4 ? 2 : 1;
     const vao = n === 4 ? 3 : n === 2 || tamanho >= 8 ? 4 : 6;
     const estilo = getComputedStyle(area);
     const largura = area.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
     const altura = area.clientHeight - parseFloat(estilo.paddingTop) - parseFloat(estilo.paddingBottom) - 4;
-    const porLargura = (largura - (colunas * tamanho - colunas) * vao - (colunas - 1) * vao * 4) / (colunas * tamanho);
+    // Dueto/Quarteto: cada palavra num painel próprio, bem separado dos outros
+    const largo = largura >= 600;
+    const gapTab = n > 1 ? (largo ? 28 : 14) : 0;
+    const padTab = n > 1 ? (largo ? 12 : 6) : 0;
+
+    // Tamanho da peça para uma disposição; "linhasDe" diz quantas linhas cada tabuleiro ocupa
+    const medir = (colunas, fileiras, linhasDe) => {
+      let linhas = 0;
+      for (let f = 0; f < fileiras; f++) {
+        let maior = 1;
+        for (let c = 0; c < colunas; c++) maior = Math.max(maior, linhasDe(f * colunas + c));
+        linhas += maior;
+      }
+      const porLargura = (largura - (colunas - 1) * gapTab - colunas * 2 * padTab - colunas * (tamanho - 1) * vao) / (colunas * tamanho);
+      const porAltura = (altura - (fileiras - 1) * gapTab - fileiras * 2 * padTab - (linhas - fileiras) * vao) / linhas;
+      return Math.min(porLargura, porAltura, 58);
+    };
+
+    // Quarteto: as 4 palavras lado a lado, cada uma na sua coluna; em tela estreita
+    // (onde 4 colunas deixariam as peças minúsculas) fica 2 em cima e 2 embaixo.
+    // A escolha olha o pior caso (todas as fichas usadas), para não trocar no meio do jogo.
+    let colunas = n === 1 ? 1 : 2;
+    if (n === 4) {
+      const cheio = () => info.fichas;
+      const emColunas = medir(4, 1, cheio);
+      colunas = emColunas >= 22 || emColunas >= medir(2, 2, cheio) ? 4 : 2;
+    }
+    const fileiras = n / colunas;
+
     // Solo: espaço reservado para todas as linhas (o tabuleiro não muda de tamanho).
     // Dueto/Quarteto: só as linhas em uso; as peças vão diminuindo conforme o jogo avança.
-    let linhas = fileiras * info.fichas;
-    if (n > 1) {
-      linhas = 0;
-      for (let f = 0; f < fileiras; f++) linhas += Math.max(linhasVisiveis(2 * f), linhasVisiveis(2 * f + 1));
-    }
-    const porAltura = (altura - (linhas - fileiras) * vao - (fileiras - 1) * vao * 4) / linhas;
-    const peca = Math.max(14, Math.floor(Math.min(porLargura, porAltura, 58)));
+    const peca = Math.max(12, Math.floor(medir(colunas, fileiras, n === 1 ? () => info.fichas : linhasVisiveis)));
     const raiz = $("#tabuleiros");
     raiz.style.setProperty("--peca", `${peca}px`);
     raiz.style.setProperty("--vao", `${vao}px`);
-    // Peças muito pequenas (Quarteto no celular): sem as marquinhas, só a cor
+    raiz.style.setProperty("--cols", colunas);
+    raiz.style.setProperty("--gap-tab", `${gapTab}px`);
+    raiz.style.setProperty("--pad-tab", `${padTab}px`);
+    // As teclas divididas seguem a mesma disposição dos tabuleiros
+    $("#teclado").dataset.layout = colunas === 4 ? "colunas" : "grade";
+    // Peças muito pequenas: sem as marquinhas, só a cor
     raiz.classList.toggle("miuda", peca < 26);
   }
 
