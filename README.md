@@ -1,40 +1,40 @@
 # Decifra
 
-Jogo de decifrar a palavra do dia, em português, com visual de placar de estádio e um toque de fliperama. Você tem 6 tentativas para descobrir uma palavra de 5 letras; a cada palpite as peças acendem mostrando o quão perto você chegou.
+Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
 
-- 🟩 verde: a letra está na palavra e na posição certa
-- 🟨 dourado: a letra está na palavra, mas em outra posição
-- 🟦 apagada: a letra não está na palavra
+## Como funciona
 
-## Modos
+- **Fases:** uma palavra por tamanho (4, 5, 6, 7, 8, 9 e 10 letras), na ordem que você quiser.
+- **Fichas:** cada chute gasta uma ficha. São 6 fichas nas fases de 4 e 5 letras, 7 nas de 6 e 7, e 8 nas de 8 a 10.
+- **As letras acendem:**
+  - verde com um traço embaixo: a letra está no lugar certo;
+  - dourada com um ponto embaixo: a letra está na palavra, mas em outro lugar;
+  - apagada: a letra não está na palavra.
+- **Dica:** revela a próxima letra ainda desconhecida e custa uma ficha. Não dá para usar na última ficha.
+- **Pontos:** `100 × letras` por acertar, mais `50 × letras` por ficha que sobrou. A soma das fases é o placar do dia, e o melhor dia vira recorde.
+- **Compartilhar:** um resumo da rodada, com as fichas usadas e os pontos de cada fase.
 
-| Modo     | Palavras | Tentativas |
-|----------|----------|------------|
-| Solo     | 1        | 6          |
-| Dueto    | 2        | 7          |
-| Quarteto | 4        | 9          |
-
-A palavra muda todo dia à meia-noite (horário de Brasília) e é a mesma para todo mundo.
+A rodada muda todo dia à meia-noite (horário de Brasília) e é a mesma para todo mundo.
 
 ## Recursos
 
 - Acentos e cedilha preenchidos sozinhos (digite `aviao`, aparece `AVIÃO`)
-- Mais de 10 mil palavras aceitas como palpite (com plurais e conjugações) e cerca de 1.400 respostas escolhidas entre as mais comuns
-- Toque numa peça para escolher onde escrever; setas, Home e End também funcionam
-- Estatísticas por modo, sequência de vitórias e resultado para compartilhar
-- Modo difícil, alto contraste e opção de ENTER à esquerda
+- Milhares de palavras aceitas como palpite em cada tamanho, com plurais e conjugações
+- Toque numa peça para escolher onde escrever
+- Histórico com recorde, dias seguidos e desempenho por fase
+- Sons de fliperama sintetizados no navegador, alto contraste e opção de ENTER à esquerda
 - Funciona sem internet e pode ser instalado no celular (PWA)
 - Sem servidor, sem cadastro e sem rastreamento: tudo fica no navegador
 
 ## Rodar no computador
 
-Não precisa instalar nada além do [Node.js](https://nodejs.org):
+As listas de palavras são carregadas por `fetch`, então o jogo precisa de um servidor local. Só é preciso ter o [Node.js](https://nodejs.org):
 
 ```bash
 node ferramentas/servidor.js
 ```
 
-Depois abra http://localhost:8765. Também dá para abrir o `index.html` direto no navegador, só que sem o modo offline.
+Depois abra http://localhost:8765.
 
 ## Testes
 
@@ -42,16 +42,17 @@ Depois abra http://localhost:8765. Também dá para abrir o `index.html` direto 
 node --test testes/logica.test.js
 ```
 
-## Lista de palavras
+## Listas de palavras
 
-O arquivo `js/palavras.js` é gerado a partir da coleção [fserb/pt-br](https://github.com/fserb/pt-br) (licença MIT, veja `LICENSE-palavras.txt`):
+Os arquivos `dados/4.txt` a `dados/10.txt` são gerados a partir da coleção [fserb/pt-br](https://github.com/fserb/pt-br) (licença MIT, veja `LICENSE-palavras.txt`). Cada um tem duas linhas: as respostas possíveis (já embaralhadas) e todas as palavras aceitas como palpite.
 
 ```bash
 git clone https://github.com/fserb/pt-br /tmp/pt-br
 python3 ferramentas/gerar_palavras.py /tmp/pt-br
 ```
 
-Para tirar uma palavra das respostas, coloque-a em `FORA`; para incluir uma, use `EXTRAS` (assim as palavras dos dias já jogados não mudam).
+- Para tirar uma palavra das respostas, coloque-a em `ferramentas/fora.txt`, na seção do tamanho dela.
+- Para incluir uma, use `ferramentas/extras.txt`: ela entra no fim da lista, sem mudar as palavras dos dias já jogados.
 
 ## Publicar
 

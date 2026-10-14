@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Decifra</title>
-<meta name="description" content="Decifre a palavra do dia em 6 tentativas. Também nos modos Dueto e Quarteto.">
+<meta name="description" content="Uma rodada por dia: decifre palavras de 4 a 10 letras, gaste fichas, peça dicas e bata seu recorde.">
 <meta name="theme-color" content="#0b1530">
 <meta property="og:title" content="Decifra">
-<meta property="og:description" content="Decifre a palavra do dia em 6 tentativas.">
+<meta property="og:description" content="Uma rodada por dia: decifre palavras de 4 a 10 letras e bata seu recorde.">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icone-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -23,11 +23,11 @@
   </div>
   <div class="topo-centro">
     <h1 class="titulo">Decifra</h1>
-    <span class="chip" id="chip">dia #001</span>
+    <span class="chip" id="chip">rodada #001</span>
   </div>
   <div class="topo-lado">
-    <button class="icone" id="btn-estatisticas" aria-label="Estatísticas">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M10 20V4M15 20v-7M20 20v-11"/></svg>
+    <button class="icone" id="btn-historico" aria-label="Histórico">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>
     </button>
     <button class="icone" id="btn-ajustes" aria-label="Ajustes">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
@@ -35,16 +35,23 @@
   </div>
 </header>
 
-<nav class="modos" aria-label="Modos de jogo">
-  <a href="#" data-modo="solo">Solo</a>
-  <a href="#dueto" data-modo="dueto">Dueto</a>
-  <a href="#quarteto" data-modo="quarteto">Quarteto</a>
-</nav>
+<nav class="fases" id="fases" aria-label="Fases da rodada"></nav>
+
+<div class="painel">
+  <div class="painel-bloco">
+    <span class="painel-rotulo">fichas</span>
+    <span class="moedas" id="moedas" role="img"></span>
+  </div>
+  <div class="painel-bloco direita">
+    <span class="painel-rotulo">placar do dia</span>
+    <strong class="led" id="placar">00000</strong>
+  </div>
+</div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <main class="area" id="area">
-  <div class="tabuleiros" id="tabuleiros"></div>
+  <div class="tabuleiro" id="tabuleiro"></div>
 </main>
 
 <div class="teclado" id="teclado" aria-label="Teclado"></div>
@@ -53,50 +60,79 @@
 <dialog id="dlg-ajuda" aria-labelledby="ajuda-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
   <h2 id="ajuda-titulo" tabindex="-1" autofocus>Como jogar</h2>
-  <p>Decifre a palavra do dia em 6 tentativas. A cada palpite, as peças acendem mostrando o quão perto você chegou.</p>
-  <div class="exemplo" aria-label="Exemplo: T na posição certa"><span class="peca certa">t</span><span class="peca">u</span><span class="peca">r</span><span class="peca">m</span><span class="peca">a</span></div>
-  <p><b>Verde:</b> a letra T está na palavra e na posição certa.</p>
-  <div class="exemplo" aria-label="Exemplo: O em outra posição"><span class="peca">v</span><span class="peca">i</span><span class="peca lugar">o</span><span class="peca">l</span><span class="peca">a</span></div>
-  <p><b>Dourado:</b> a letra O está na palavra, mas em outra posição.</p>
-  <div class="exemplo" aria-label="Exemplo: G não faz parte"><span class="peca">p</span><span class="peca">u</span><span class="peca">l</span><span class="peca errada">g</span><span class="peca">a</span></div>
-  <p><b>Apagada:</b> a letra G não está na palavra.</p>
-  <p>Acentos entram sozinhos e não contam nas dicas. A palavra pode ter letras repetidas.</p>
-  <p>No <b>Dueto</b> são 2 palavras de uma vez em 7 tentativas; no <b>Quarteto</b>, 4 palavras em 9.</p>
-  <p>Toque numa peça da linha atual para escolher onde escrever. Palavra nova todo dia à meia-noite (horário de Brasília).</p>
+  <ol class="passos">
+    <li>
+      <b>Uma rodada por dia.</b> São 7 fases, com palavras de 4 a 10 letras. Jogue na ordem que quiser.
+    </li>
+    <li>
+      <b>Chute e veja o que acende.</b>
+      <span class="exemplo" aria-label="Exemplo: P certa, R em outro lugar, I fora">
+        <span class="peca certa">p</span><span class="peca lugar">r</span><span class="peca errada">i</span><span class="peca errada">s</span><span class="peca errada">m</span><span class="peca errada">a</span>
+      </span>
+      <span class="legenda"><span><i class="ponto certa"></i>lugar certo</span><span><i class="ponto lugar"></i>outro lugar</span><span><i class="ponto errada"></i>não está</span></span>
+    </li>
+    <li>
+      <b>Cada chute gasta uma ficha.</b> Travou? A tecla <b>DICA</b> revela uma letra, mas também custa uma ficha.
+    </li>
+    <li>
+      <b>Some pontos.</b> Palavras maiores valem mais, e cada ficha que sobra vira bônus. Tudo entra no placar do dia: bata seu recorde.
+    </li>
+  </ol>
+  <p class="nota">Acentos entram sozinhos. Rodada nova todo dia à meia-noite (horário de Brasília).</p>
+  <button class="botao largo" id="btn-comecar">Bora jogar</button>
 </dialog>
 
-<dialog id="dlg-estatisticas" aria-labelledby="est-titulo">
+<dialog id="dlg-fase" class="resultado" aria-labelledby="res-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
-  <h2 id="est-titulo" tabindex="-1" autofocus>Estatísticas</h2>
-  <div class="numeros" id="est-numeros"></div>
-  <h3>Tentativas</h3>
-  <div class="distribuicao" id="est-distribuicao"></div>
-  <div class="rodape-estat" id="est-rodape">
-    <div class="proxima"><span>próxima palavra em</span><strong id="est-contagem">--:--:--</strong></div>
-    <button class="botao" id="btn-compartilhar">Compartilhar</button>
+  <p class="res-rotulo" id="res-rotulo">fase 2 · 5 letras</p>
+  <h2 id="res-titulo" tabindex="-1" autofocus>Fase limpa!</h2>
+  <div class="res-palavra" id="res-palavra"></div>
+  <div class="res-pontos">
+    <strong id="res-pontos">+0</strong>
+    <span id="res-conta"></span>
   </div>
+  <p class="res-detalhes" id="res-detalhes"></p>
+  <div class="res-dia">
+    <span>placar do dia</span>
+    <strong class="led" id="res-dia">00000</strong>
+    <em id="res-recorde" hidden>novo recorde!</em>
+  </div>
+  <div class="res-acoes">
+    <button class="botao" id="btn-proxima">Próxima fase</button>
+    <button class="botao secundario" id="btn-compartilhar">Compartilhar rodada</button>
+  </div>
+  <p class="res-nova">nova rodada em <span id="res-contagem">--:--:--</span></p>
+</dialog>
+
+<dialog id="dlg-historico" aria-labelledby="hist-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="hist-titulo" tabindex="-1" autofocus>Histórico</h2>
+  <div class="recordes" id="hist-numeros"></div>
+  <h3>Fase por fase</h3>
+  <div class="por-fase" id="hist-fases"></div>
+  <button class="botao secundario largo" id="btn-compartilhar-hist">Compartilhar rodada de hoje</button>
 </dialog>
 
 <dialog id="dlg-ajustes" aria-labelledby="ajustes-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
   <h2 id="ajustes-titulo" tabindex="-1" autofocus>Ajustes</h2>
   <label class="opcao">
-    <span><b>Modo difícil</b><small>No Solo, as dicas reveladas precisam ser usadas nos palpites seguintes. Só muda antes do primeiro palpite do dia.</small></span>
-    <input type="checkbox" id="opt-dificil" role="switch">
+    <span><b>Sons</b><small>Efeitos de fliperama ao digitar, acender as letras e passar de fase.</small></span>
+    <input type="checkbox" id="opt-sons" role="switch">
   </label>
   <label class="opcao">
-    <span><b>Alto contraste</b><small>Cores mais fáceis de distinguir (laranja e azul).</small></span>
+    <span><b>Alto contraste</b><small>Laranja e azul no lugar de verde e dourado.</small></span>
     <input type="checkbox" id="opt-contraste" role="switch">
   </label>
   <label class="opcao">
-    <span><b>Enter à esquerda</b><small>Coloca o ENTER no começo da última fileira do teclado.</small></span>
+    <span><b>Enter à esquerda</b><small>Troca de lado as teclas ENTER e DICA.</small></span>
     <input type="checkbox" id="opt-enter" role="switch">
   </label>
   <p class="creditos">Lista de palavras: <a href="https://github.com/fserb/pt-br" target="_blank" rel="noopener">fserb/pt-br</a> (MIT).</p>
 </dialog>
 
 <script src="js/logica.js"></script>
-<script src="js/palavras.js"></script>
+<script src="js/som.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

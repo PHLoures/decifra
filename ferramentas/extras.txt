@@ -1,0 +1,12 @@
+# Palavras conhecidas, mas menos frequentes no corpus, que também entram como resposta.
+# Entram no fim da lista do seu tamanho, sem mudar as palavras dos dias já jogados.
+
+[5]
+lince truta vagem cupim dedão adaga carnê jarro broto larva magma fêmur aceno ereto aorta afago polir rapto
+canja caqui alado calvo sonar sagaz trufa plebe prumo fedor aipim pequi coeso potro pônei vodca ralar cervo
+germe trapo ébano gambá inato banjo dardo platô cacto grude paiol nafta titio jegue bolar axila tíbia matiz
+pança carpa húmus lerdo mocho bemol vadio míope latir hidra feudo vedar usura taxar filão rimar podar rouco
+pinha vinco bolor apuro tripa lesma viela tonel harém álibi audaz tenaz sépia chulé ceifa nevar seixo afiar
+lasca ranço rubor senil vivaz légua coala dália troça musse ilhéu boldo ameba hiena cuspe ábaco ácaro linfa
+álamo cidra sifão rédea dúbio pajem vaiar sidra ébrio ungir ogiva lhama arpão pária jaspe polca silvo igapó
+fiapo uivar dedal rublo vizir zonzo guizo farpa quepe cílio fujão

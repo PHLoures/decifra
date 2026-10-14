@@ -1,7 +1,7 @@
 {
   "name": "Decifra",
   "short_name": "Decifra",
-  "description": "Decifre a palavra do dia em 6 tentativas.",
+  "description": "Uma rodada por dia: decifre palavras de 4 a 10 letras, gaste fichas, peça dicas e bata seu recorde.",
   "lang": "pt-BR",
   "id": "./",
   "start_url": "./",
