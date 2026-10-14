@@ -451,16 +451,39 @@
 
   /* ---------- Entrada ---------- */
 
+  // Casa com a letra da dica no solo: fica travada (não é apagada nem substituída)
+  const travada = (i) => solo() && temDica(0, i) && atual[i] === respostas[0][i];
+  const vazia = (i) => !atual[i];
+
+  // Para onde o cursor vai depois de uma letra: a próxima casa vazia (ou com dica, para quem
+  // digita a palavra inteira) à direita; se não houver, a primeira vazia desde o começo.
+  function proximoPouso(de) {
+    for (let i = de + 1; i < tamanho; i++) if (vazia(i) || travada(i)) return i;
+    for (let i = 0; i < de; i++) if (vazia(i)) return i;
+    return Math.min(de + 1, tamanho - 1);
+  }
+  function proximaVazia(de) {
+    for (let i = de + 1; i < tamanho; i++) if (vazia(i)) return i;
+    for (let i = 0; i < de; i++) if (vazia(i)) return i;
+    return -1;
+  }
+
   function tecla(k) {
     if (!respostas || situacao().fim || document.querySelector("dialog[open]")) return;
     if (k === "Enter") return revelando ? undefined : enviar();
     if (k === "Dica") return revelando ? undefined : usarDica();
     if (k === "Backspace") {
-      if (!atual[cursor] && cursor > 0) cursor--;
+      // Apaga a casa do cursor; se ela estiver vazia, a letra anterior (pulando as da dica)
+      if (vazia(cursor) || travada(cursor)) {
+        let i = cursor - 1;
+        while (i >= 0 && (travada(i) || vazia(i))) i--;
+        if (i < 0) return;
+        cursor = i;
+      }
       if (ajustes.sons) Som.apagar(cursor);
       atual[cursor] = "";
     } else if (k === "Delete") {
-      atual[cursor] = "";
+      if (!travada(cursor)) atual[cursor] = "";
     } else if (k === "ArrowLeft") {
       cursor = Math.max(0, cursor - 1);
     } else if (k === "ArrowRight") {
@@ -468,10 +491,15 @@
     } else {
       const letra = L.semAcento(k);
       if (!/^[a-z]$/.test(letra)) return;
-      // Escreve em sequência, inclusive por cima das letras da dica
-      if (ajustes.sons) Som.tecla(cursor);
-      atual[cursor] = letra;
-      cursor = Math.min(tamanho - 1, cursor + 1);
+      let alvo = cursor;
+      // Em cima da letra da dica: a mesma letra só confirma; outra vai para a próxima casa vazia
+      if (travada(alvo) && letra !== atual[alvo]) {
+        alvo = proximaVazia(alvo);
+        if (alvo < 0) return;
+      }
+      if (ajustes.sons) Som.tecla(alvo);
+      if (!travada(alvo)) atual[alvo] = letra;
+      cursor = proximoPouso(alvo);
       if (!estado.inicio) estado.inicio = Date.now();
     }
     desenhar();
