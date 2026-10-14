@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Decifra</title>
-<meta name="description" content="Uma rodada por dia: decifre palavras de 4 a 10 letras, gaste fichas, peça dicas e bata seu recorde.">
+<meta name="description" content="Uma rodada por dia: decifre palavras de 4 a 10 letras, encare o Dueto e o Quarteto, gaste fichas, peça dicas e bata seu recorde.">
 <meta name="theme-color" content="#0b1530">
 <meta property="og:title" content="Decifra">
 <meta property="og:description" content="Uma rodada por dia: decifre palavras de 4 a 10 letras e bata seu recorde.">
@@ -51,7 +51,7 @@
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <main class="area" id="area">
-  <div class="tabuleiro" id="tabuleiro"></div>
+  <div class="tabuleiros" id="tabuleiros"></div>
 </main>
 
 <div class="teclado" id="teclado" aria-label="Teclado"></div>
@@ -62,7 +62,7 @@
   <h2 id="ajuda-titulo" tabindex="-1" autofocus>Como jogar</h2>
   <ol class="passos">
     <li>
-      <b>Uma rodada por dia.</b> São 7 fases, com palavras de 4 a 10 letras. Jogue na ordem que quiser.
+      <b>Uma rodada por dia.</b> São 7 fases, com palavras de 4 a 10 letras, e mais duas fases bônus: <b>Dueto</b> (2 palavras ao mesmo tempo) e <b>Quarteto</b> (4 palavras). Jogue na ordem que quiser.
     </li>
     <li>
       <b>Chute e veja o que acende.</b>
@@ -75,7 +75,7 @@
       <b>Cada chute gasta uma ficha.</b> Travou? A tecla <b>DICA</b> revela uma letra, mas também custa uma ficha.
     </li>
     <li>
-      <b>Some pontos.</b> Palavras maiores valem mais, e cada ficha que sobra vira bônus. Tudo entra no placar do dia: bata seu recorde.
+      <b>Some pontos.</b> Palavras maiores valem mais, e cada ficha que sobra vira bônus. No Dueto e no Quarteto, cada palavra decifrada já pontua. Tudo entra no placar do dia: bata seu recorde.
     </li>
   </ol>
   <p class="nota">Acentos entram sozinhos. Rodada nova todo dia à meia-noite (horário de Brasília).</p>
@@ -86,7 +86,7 @@
   <button class="fechar" aria-label="Fechar">×</button>
   <p class="res-rotulo" id="res-rotulo">fase 2 · 5 letras</p>
   <h2 id="res-titulo" tabindex="-1" autofocus>Fase limpa!</h2>
-  <div class="res-palavra" id="res-palavra"></div>
+  <div class="res-palavras" id="res-palavras"></div>
   <div class="res-pontos">
     <strong id="res-pontos">+0</strong>
     <span id="res-conta"></span>

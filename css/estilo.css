@@ -124,10 +124,12 @@ button { font: inherit; color: inherit; }
 .icone svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- Fases da rodada ---------- */
-.fases { display: flex; gap: 6px; justify-content: center; padding: 10px 12px 2px; }
+.fases { width: 100%; max-width: 540px; display: flex; gap: 6px; justify-content: center; padding: 10px 12px 2px; }
 .fase {
   position: relative;
-  width: 42px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 44px;
   height: 46px;
   border: 1.5px solid var(--linha-borda);
   border-radius: 10px;
@@ -150,6 +152,9 @@ button { font: inherit; color: inherit; }
 .fase.perdida { border-color: rgba(248, 113, 113, .5); }
 .fase.perdida strong { color: var(--texto-suave); }
 .fase.perdida .marca { color: var(--perdeu); }
+.fases .divisor { flex: none; width: 2px; margin: 8px 1px; border-radius: 1px; background: var(--linha-borda); }
+.fase.bonus strong { font-size: 1.15rem; color: var(--neon); text-shadow: 0 0 8px var(--neon-brilho); }
+.fase.bonus.limpa strong { color: var(--certa-letra); text-shadow: none; }
 .fase.atual { transform: translateY(-3px); border-color: var(--ouro); box-shadow: 0 0 14px var(--lugar-brilho), inset 0 0 0 1px var(--ouro); }
 
 /* ---------- Painel: fichas e placar ---------- */
@@ -204,8 +209,10 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Tabuleiro: peças de LED ---------- */
 .area { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0 12px; }
-.tabuleiro { display: grid; gap: var(--vao); }
-.tabuleiro.carregando { opacity: .4; }
+.tabuleiros { display: grid; gap: calc(var(--vao) * 4); }
+.tabuleiros[data-n="2"], .tabuleiros[data-n="4"] { grid-template-columns: repeat(2, auto); }
+.tabuleiros.carregando { opacity: .4; }
+.tabuleiro { display: grid; gap: var(--vao); align-content: start; }
 .linha { display: grid; grid-template-columns: repeat(var(--colunas), var(--peca)); gap: var(--vao); }
 /* Linhas futuras não aparecem: o tabuleiro vai se formando conforme você joga */
 .linha.oculta { visibility: hidden; }
@@ -244,6 +251,7 @@ button { font: inherit; color: inherit; }
 }
 @keyframes pisca { to { visibility: hidden; } }
 /* Letra revelada pela dica: tracejado ciano */
+.peca.dica.fantasma { opacity: .5; }
 .peca.dica { border-style: dashed; border-color: var(--neon) !important; color: var(--neon); text-shadow: 0 0 10px var(--neon-brilho); background: rgba(34, 211, 238, .07); }
 
 /* Resultado: a letra acende; um traço embaixo = lugar certo, um ponto = outro lugar */
@@ -260,6 +268,8 @@ button { font: inherit; color: inherit; }
 }
 .peca.certa::after { width: 38%; height: max(2px, calc(var(--peca) * .055)); background: var(--certa-letra); box-shadow: 0 0 6px var(--certa-brilho); }
 .peca.lugar::after { width: max(4px, calc(var(--peca) * .1)); height: max(4px, calc(var(--peca) * .1)); border-radius: 50%; background: var(--lugar-letra); box-shadow: 0 0 6px var(--lugar-brilho); }
+.miuda .peca { font-size: calc(var(--peca) * .72); border-width: 1.5px; }
+.miuda .peca.certa::after, .miuda .peca.lugar::after { display: none; }
 .peca.revelada { border-color: var(--perdeu); color: #fecaca; text-shadow: 0 0 10px rgba(248, 113, 113, .6); background: rgba(248, 113, 113, .08); }
 
 .peca.acende { animation: acende .42s cubic-bezier(.2, 1.5, .4, 1) both; }
@@ -294,6 +304,7 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
   padding: 0 0 3px;
   touch-action: manipulation;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,6 +322,16 @@ button { font: inherit; color: inherit; }
 .tecla.certa { background: var(--certa-fundo); color: var(--certa-letra); box-shadow: inset 0 0 0 1.5px var(--certa), inset 0 -4px 0 var(--certa); text-shadow: 0 0 8px var(--certa-brilho); }
 .tecla.lugar { background: var(--lugar-fundo); color: var(--lugar-letra); box-shadow: inset 0 0 0 1.5px var(--lugar), inset 0 -4px 0 var(--lugar); text-shadow: 0 0 8px var(--lugar-brilho); }
 .tecla.errada { background: rgba(6, 11, 28, .7); color: var(--texto-apagado); box-shadow: none; }
+.tecla .rotulo, .tecla svg { position: relative; z-index: 1; }
+/* Dueto/Quarteto: cada pedaço da tecla mostra um tabuleiro */
+.tecla .partes { position: absolute; inset: 0; display: grid; }
+.tecla .partes[data-n="2"] { grid-template-columns: 1fr 1fr; }
+.tecla .partes[data-n="4"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.tecla .partes i.certa { background: var(--certa); opacity: .55; }
+.tecla .partes i.lugar { background: var(--lugar); opacity: .55; }
+.tecla .partes i.errada { background: rgba(6, 11, 28, .75); }
+.tecla.toda-errada { color: var(--texto-apagado); }
+.tecla.alguma { text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
 
 /* ---------- Janelas ---------- */
 dialog {
@@ -398,7 +419,9 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
 .res-rotulo { margin: 0 0 6px !important; font-family: var(--fonte-placar); font-weight: 600; font-size: .85rem !important; letter-spacing: .22em; text-transform: uppercase; color: var(--texto-suave) !important; }
 .resultado h2 { font-size: 2.6rem; color: var(--ouro); text-shadow: 3px 3px 0 rgba(34, 211, 238, .45), 0 0 24px var(--lugar-brilho); margin-bottom: 14px; }
 .resultado.derrota h2 { color: var(--perdeu); text-shadow: 3px 3px 0 rgba(34, 211, 238, .3), 0 0 24px rgba(248, 113, 113, .4); }
+.res-palavras { display: grid; gap: 6px; justify-content: center; }
 .res-palavra { display: flex; justify-content: center; gap: 4px; --peca: min(38px, calc((100vw - 110px) / var(--colunas))); }
+.res-palavras[data-n="4"] .res-palavra { --peca: 28px; }
 .res-palavra .peca { animation: acende .42s cubic-bezier(.2, 1.5, .4, 1) both; }
 .res-pontos { margin: 16px 0 4px; }
 .res-pontos strong { display: block; font-family: var(--fonte-placar); font-weight: 800; font-size: 3.6rem; line-height: 1; color: var(--certa-letra); text-shadow: 0 0 22px var(--certa-brilho); font-variant-numeric: tabular-nums; }
@@ -446,8 +469,10 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
   .fase { height: 38px; }
   .aviso { min-height: 34px; }
 }
-@media (max-width: 360px) {
-  .fase { width: 36px; }
+@media (max-width: 380px) {
+  .fases { gap: 4px; padding-left: 8px; padding-right: 8px; }
+  .fase strong { font-size: 1.15rem; }
+  .fase.bonus strong { font-size: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition: none !important; }

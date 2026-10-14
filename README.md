@@ -1,17 +1,18 @@
 # Decifra
 
-Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
+Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, e mais duas fases bônus: **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
 
 ## Como funciona
 
 - **Fases:** uma palavra por tamanho (4, 5, 6, 7, 8, 9 e 10 letras), na ordem que você quiser.
+- **Bônus:** no **Dueto** são 2 palavras de 5 letras ao mesmo tempo (7 fichas); no **Quarteto**, 4 palavras (9 fichas). Cada chute vale para todos os tabuleiros, e cada tecla mostra a situação da letra em cada um.
 - **Fichas:** cada chute gasta uma ficha. São 6 fichas nas fases de 4 e 5 letras, 7 nas de 6 e 7, e 8 nas de 8 a 10.
 - **As letras acendem:**
   - verde com um traço embaixo: a letra está no lugar certo;
   - dourada com um ponto embaixo: a letra está na palavra, mas em outro lugar;
   - apagada: a letra não está na palavra.
-- **Dica:** revela a próxima letra ainda desconhecida e custa uma ficha. Não dá para usar na última ficha.
-- **Pontos:** `100 × letras` por acertar, mais `50 × letras` por ficha que sobrou. A soma das fases é o placar do dia, e o melhor dia vira recorde.
+- **Dica:** revela a próxima letra ainda desconhecida (no Dueto e no Quarteto, do primeiro tabuleiro em aberto) e custa uma ficha. Não dá para usar na última ficha.
+- **Pontos:** `100 × letras` por palavra decifrada e, fechando a fase, mais `50 × letras` por ficha que sobrou, para cada palavra. No Dueto e no Quarteto as palavras decifradas pontuam mesmo se a fase não fechar. A soma das fases é o placar do dia, e o melhor dia vira recorde.
 - **Compartilhar:** um resumo da rodada, com as fichas usadas e os pontos de cada fase.
 
 A rodada muda todo dia à meia-noite (horário de Brasília) e é a mesma para todo mundo.
@@ -22,7 +23,8 @@ A rodada muda todo dia à meia-noite (horário de Brasília) e é a mesma para t
 - Milhares de palavras aceitas como palpite em cada tamanho, com plurais e conjugações
 - Toque numa peça para escolher onde escrever
 - Histórico com recorde, dias seguidos e desempenho por fase
-- Sons de fliperama sintetizados no navegador, alto contraste e opção de ENTER à esquerda
+- Sons sintetizados no navegador: clique de teclado mecânico com notinhas que sobem conforme você digita (e descem quando apaga), letras que acendem com som e jingles de fliperama
+- Alto contraste e opção de ENTER à esquerda
 - Funciona sem internet e pode ser instalado no celular (PWA)
 - Sem servidor, sem cadastro e sem rastreamento: tudo fica no navegador
 

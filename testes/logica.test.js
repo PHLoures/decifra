@@ -7,13 +7,20 @@ const L = require("../js/logica.js");
 
 // Listas de cada tamanho, como o jogo carrega
 const DADOS = {};
-for (const t of L.FASES) {
+for (const t of L.TAMANHOS) {
   const [respostas, validas] = fs.readFileSync(path.join(__dirname, "..", "dados", `${t}.txt`), "utf8").split("\n");
   DADOS[t] = { respostas: respostas.split(" ").map(L.semAcento), validas: new Set(validas.split(" ").map(L.semAcento)) };
 }
 
 const cores = (palpite, resposta) => L.avaliar(palpite, resposta).map((s) => ({ certa: "V", lugar: "A", errada: "-" })[s]).join("");
 const nova = () => ({ palpites: [], dicas: [] });
+
+test("fases da rodada", () => {
+  assert.deepEqual(L.FASES.map((f) => f.id), ["4", "5", "6", "7", "8", "9", "10", "dueto", "quarteto"]);
+  assert.deepEqual(L.TAMANHOS, [4, 5, 6, 7, 8, 9, 10]);
+  assert.equal(L.fase("quarteto").palavras, 4);
+  assert.equal(L.fase(10).fichas, 8);
+});
 
 test("avaliação em qualquer tamanho", () => {
   assert.equal(cores("ouvia", "assim"), "---VA");
@@ -42,19 +49,28 @@ test("dia do jogo vira à meia-noite de Brasília", () => {
   assert.equal(L.msAteProximoDia(new Date("2026-10-15T02:59:00Z")), 60_000);
 });
 
-test("cada fase passa por toda a lista antes de repetir", () => {
-  for (const t of L.FASES) {
+test("cada fase solo passa por toda a lista antes de repetir", () => {
+  for (const t of L.TAMANHOS) {
     const r = DADOS[t].respostas;
     const vistas = new Set();
-    for (let dia = 1; dia <= r.length; dia++) vistas.add(L.palavraDoDia(r, dia));
+    for (let dia = 1; dia <= r.length; dia++) vistas.add(L.palavrasDoDia(r, dia)[0]);
     assert.equal(vistas.size, r.length, `${t} letras`);
-    assert.equal(L.palavraDoDia(r, r.length + 1), L.palavraDoDia(r, 1));
+  }
+});
+
+test("Dueto e Quarteto: palavras diferentes entre si e da fase solo no mesmo dia", () => {
+  const r = DADOS[5].respostas;
+  for (let dia = 1; dia <= 3000; dia++) {
+    const solo = L.palavrasDoDia(r, dia, 1);
+    const dueto = L.palavrasDoDia(r, dia, 2);
+    const quarteto = L.palavrasDoDia(r, dia, 4);
+    assert.equal(new Set([...solo, ...dueto, ...quarteto]).size, 7, `dia ${dia}`);
   }
 });
 
 test("listas de palavras", () => {
   const minimo = { 4: 300, 5: 1000, 6: 500, 7: 500, 8: 400, 9: 350, 10: 300 };
-  for (const t of L.FASES) {
+  for (const t of L.TAMANHOS) {
     const { respostas, validas } = DADOS[t];
     assert.ok(respostas.length >= minimo[t], `${t} letras: só ${respostas.length} respostas`);
     assert.equal(new Set(respostas).size, respostas.length, `${t} letras: resposta repetida`);
@@ -73,38 +89,54 @@ test("listas de palavras", () => {
 
 test("fichas, vitória e derrota", () => {
   const f = nova();
-  assert.deepEqual(L.situacao(f, "assim"), { total: 6, gastas: 0, restantes: 6, venceu: false, fim: false });
+  assert.equal(L.situacao(f, ["assim"], 6).restantes, 6);
   f.palpites.push("termo", "assim");
-  assert.deepEqual(L.situacao(f, "assim"), { total: 6, gastas: 2, restantes: 4, venceu: true, fim: true });
-  const d = { palpites: ["a", "b", "c", "d", "e"], dicas: [0] };
-  assert.equal(L.situacao(d, "assim").fim, true);
-  assert.equal(L.situacao(d, "assim").venceu, false);
-  assert.equal(L.FICHAS[10], 8);
+  const s = L.situacao(f, ["assim"], 6);
+  assert.deepEqual([s.gastas, s.restantes, s.venceu, s.fim, s.quantasResolvidas], [2, 4, true, true, 1]);
+  const d = { palpites: ["a", "b", "c", "d", "e"], dicas: [[0, 0]] };
+  assert.deepEqual([L.situacao(d, ["assim"], 6).fim, L.situacao(d, ["assim"], 6).venceu], [true, false]);
+});
+
+test("vários tabuleiros: cada palavra resolve no seu palpite", () => {
+  const f = { palpites: ["termo", "assim", "praia"], dicas: [] };
+  const s = L.situacao(f, ["praia", "assim"], 7);
+  assert.deepEqual(s.resolvidos, [2, 1]);
+  assert.equal(s.venceu, true);
+  const meio = L.situacao({ palpites: ["assim"], dicas: [] }, ["praia", "assim", "termo", "salto"], 9);
+  assert.deepEqual([meio.quantasResolvidas, meio.venceu, meio.fim], [1, false, false]);
 });
 
 test("pontos", () => {
-  assert.equal(L.pontos(5, 4, true), 500 + 1000);
-  assert.equal(L.pontos(10, 0, true), 1000);
-  assert.equal(L.pontos(7, 3, false), 0);
+  assert.equal(L.pontos(5, 1, 1, 4), 500 + 1000);
+  assert.equal(L.pontos(10, 1, 1, 0), 1000);
+  assert.equal(L.pontos(7, 1, 0, 3), 0);
+  // Dueto fechado com 2 fichas sobrando: 2 × 500 + 2 fichas × 250 × 2 palavras
+  assert.equal(L.pontos(5, 2, 2, 2), 1000 + 1000);
+  // Quarteto perdido com 3 de 4 palavras: só as palavras contam
+  assert.equal(L.pontos(5, 4, 3, 0), 1500);
 });
 
-test("dica revela a primeira letra ainda desconhecida", () => {
+test("dica revela a primeira letra desconhecida do primeiro tabuleiro em aberto", () => {
   const f = nova();
-  assert.equal(L.proximaDica(f, "assim"), 0);
+  assert.deepEqual(L.proximaDica(f, ["assim"]), [0, 0]);
   f.palpites.push("acaso"); // A verde na 1ª
-  assert.equal(L.proximaDica(f, "assim"), 1);
-  f.dicas.push(1);
-  assert.equal(L.proximaDica(f, "assim"), 2);
-  assert.deepEqual([...L.posicoesConhecidas(f, "assim")].sort(), [0, 1]);
-  const tudo = { palpites: [], dicas: [0, 1, 2, 3] };
-  assert.equal(L.proximaDica(tudo, "casa"), -1);
+  assert.deepEqual(L.proximaDica(f, ["assim"]), [0, 1]);
+  f.dicas.push([0, 1]);
+  assert.deepEqual(L.proximaDica(f, ["assim"]), [0, 2]);
+  // Tabuleiro 0 resolvido: a dica vai para o 1
+  const m = { palpites: ["praia"], dicas: [] };
+  assert.deepEqual(L.proximaDica(m, ["praia", "assim"]), [1, 0]);
+  assert.equal(L.proximaDica({ palpites: [], dicas: [[0, 0], [0, 1], [0, 2], [0, 3]] }, ["casa"]), null);
 });
 
-test("teclado: dica conta como letra certa e a melhor informação vence", () => {
+test("teclado: dica conta como letra certa só no seu tabuleiro", () => {
   const f = { palpites: ["sasss"], dicas: [] };
   assert.equal(L.letrasConhecidas(f, "assim").s, "certa");
   assert.equal(L.letrasConhecidas(f, "assim").a, "lugar");
-  f.dicas.push(4);
-  assert.equal(L.letrasConhecidas(f, "assim").m, "certa");
-  assert.equal(L.letrasConhecidas({ palpites: ["termo"], dicas: [] }, "assim").t, "errada");
+  f.dicas.push([0, 4]);
+  assert.equal(L.letrasConhecidas(f, "assim", 0).m, "certa");
+  assert.equal(L.letrasConhecidas(f, "assim", 1).m, undefined);
+  // Depois de resolvido, os palpites seguintes não mudam o teclado daquele tabuleiro
+  const r = { palpites: ["assim", "zebra"], dicas: [] };
+  assert.equal(L.letrasConhecidas(r, "assim").z, undefined);
 });

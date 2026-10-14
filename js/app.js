@@ -1,4 +1,4 @@
-// Tela do jogo: fases, tabuleiro, teclado, janelas e armazenamento local.
+// Tela do jogo: fases, tabuleiros, teclado, janelas e armazenamento local.
 (() => {
   "use strict";
 
@@ -7,6 +7,7 @@
   const NOME = "Decifra";
   const PREFIXO = "decifra";
   const FILAS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+  const IDS = L.FASES.map((f) => f.id);
   const fmt = new Intl.NumberFormat("pt-BR");
 
   // localStorage pode faltar (aba anônima, bloqueio): o jogo funciona mesmo assim
@@ -29,17 +30,18 @@
   const semMovimento = matchMedia("(prefers-reduced-motion: reduce)");
   const dois = (n) => String(n).padStart(2, "0");
   const led = (n) => String(n).padStart(5, "0");
+  const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 
   const ajustes = Object.assign({ sons: true, contraste: false, enterEsquerda: false }, guardado.ler("ajustes", {}));
 
-  // Estado da fase aberta
-  let dia, tamanho, resposta, dicionario, fase;
+  // Fase aberta
+  let dia, info, tamanho, respostas, dicionario, estado;
   let atual = [];
   let cursor = 0;
   let revelando = false;
   let linhaRevelando = -1; // a linha que está acendendo não é redesenhada até acabar
   let partida = 0; // muda a cada troca de fase/dia, para descartar animações e carregamentos pendentes
-  let linhas = []; // [[peça x tamanho] x fichas]
+  let tabuleiros = []; // [{ el, linhas: [[peça x tamanho] x fichas] }]
   let teclas = new Map();
   let teclaDica = null;
 
@@ -65,19 +67,24 @@
 
   /* ---------- Estado salvo ---------- */
 
-  function lerFase(t) {
-    const f = guardado.ler(`fase:${t}`, null);
-    if (f && f.dia === dia) return f;
+  function lerEstado(id) {
+    const f = guardado.ler(`fase:${id}`, null);
+    if (f && f.dia === dia) {
+      // Versão anterior guardava a dica só como posição
+      f.dicas = f.dicas.map((d) => (Array.isArray(d) ? d : [0, d]));
+      return f;
+    }
     return { dia, palpites: [], dicas: [], inicio: null, fim: null, pontos: 0, contabilizado: false };
   }
-  const salvarFase = () => guardado.gravar(`fase:${tamanho}`, fase);
+  const estadoDe = (id) => (info && id === info.id && estado ? estado : lerEstado(id));
+  const salvar = () => guardado.gravar(`fase:${info.id}`, estado);
 
-  function statusFase(t) {
-    const f = t === tamanho && fase ? fase : lerFase(t);
-    if (f.contabilizado) return f.pontos > 0 ? "limpa" : "perdida";
+  function statusFase(id) {
+    const f = estadoDe(id);
+    if (f.contabilizado) return f.pontos > 0 && f.venceu !== false ? "limpa" : "perdida";
     return f.palpites.length || f.dicas.length ? "andando" : "nova";
   }
-  const placarDoDia = () => L.FASES.reduce((soma, t) => soma + (t === tamanho && fase ? fase : lerFase(t)).pontos, 0);
+  const placarDoDia = () => IDS.reduce((soma, id) => soma + estadoDe(id).pontos, 0);
 
   function lerHistorico() {
     return Object.assign(
@@ -89,34 +96,34 @@
   /* ---------- Fases ---------- */
 
   function faseDaUrl() {
-    const t = Number(location.hash.slice(1));
-    return L.FASES.includes(t) ? t : null;
+    const id = decodeURIComponent(location.hash.slice(1));
+    return L.fase(id) ? id : null;
   }
   // Sem fase na URL: a primeira que ainda não terminou hoje
-  function faseInicial() {
-    return faseDaUrl() || L.FASES.find((t) => ["nova", "andando"].includes(statusFase(t))) || 5;
-  }
+  const faseInicial = () => faseDaUrl() || IDS.find((id) => ["nova", "andando"].includes(statusFase(id))) || "5";
 
-  async function iniciar(t) {
+  async function iniciar(id) {
     const desta = ++partida;
     dia = L.diaDoJogo();
-    tamanho = t;
-    fase = lerFase(t);
+    info = L.fase(id);
+    tamanho = info.tamanho;
+    estado = lerEstado(id);
     dicionario = null;
+    respostas = null;
     revelando = false;
     linhaRevelando = -1;
     fecharTudo();
     limparAviso();
     $("#chip").textContent = `rodada #${String(dia).padStart(3, "0")}`;
-    document.title = `${NOME} · ${t} letras`;
+    document.title = `${NOME} · ${info.nome}`;
     desenharFases();
     desenharPainel();
-    montarTabuleiro();
+    montarTabuleiros();
     montarTeclado();
-    $("#tabuleiro").classList.add("carregando");
+    $("#tabuleiros").classList.add("carregando");
 
     try {
-      const d = await carregar(t);
+      const d = await carregar(tamanho);
       if (desta !== partida) return;
       dicionario = d;
     } catch {
@@ -124,38 +131,38 @@
       avisar("não deu para carregar as palavras. abra o jogo por um servidor (veja o README)", 0);
       return;
     }
-    $("#tabuleiro").classList.remove("carregando");
-    resposta = L.palavraDoDia(dicionario.respostas, dia);
+    $("#tabuleiros").classList.remove("carregando");
+    respostas = L.palavrasDoDia(dicionario.respostas, dia, info.palavras);
     novaLinha();
     desenhar();
     desenharTeclado();
     if (situacao().fim) setTimeout(() => { if (desta === partida) abrirResultado(false); }, 350);
   }
 
-  const situacao = () => L.situacao(fase, resposta);
+  const situacao = () => L.situacao(estado, respostas, info.fichas);
 
   function desenharFases() {
     const raiz = $("#fases");
     raiz.innerHTML = "";
-    L.FASES.forEach((t, i) => {
-      const status = statusFase(t);
-      const b = el("button", `fase ${status}${t === tamanho ? " atual" : ""}`);
+    const nomes = { nova: "nova", andando: "em andamento", limpa: "limpa", perdida: "perdida" };
+    L.FASES.forEach((f, i) => {
+      if (f.palavras > 1 && L.FASES[i - 1].palavras === 1) raiz.appendChild(el("span", "divisor"));
+      const status = statusFase(f.id);
+      const b = el("button", `fase ${status}${f.palavras > 1 ? " bonus" : ""}${f.id === info.id ? " atual" : ""}`);
       b.type = "button";
-      const nomes = { nova: "nova", andando: "em andamento", limpa: "limpa", perdida: "perdida" };
-      b.setAttribute("aria-label", `Fase ${i + 1}, ${t} letras, ${nomes[status]}`);
-      if (t === tamanho) b.setAttribute("aria-current", "step");
-      b.append(el("strong", "", t), el("span", "marca", { limpa: "✓", perdida: "✕", andando: "•", nova: "" }[status]));
+      b.setAttribute("aria-label", `${f.palavras > 1 ? `Bônus ${f.nome}` : `Fase ${i + 1}, ${f.nome}`}, ${nomes[status]}`);
+      if (f.id === info.id) b.setAttribute("aria-current", "step");
+      b.append(el("strong", "", f.curto), el("span", "marca", { limpa: "✓", perdida: "✕", andando: "•", nova: "" }[status]));
       b.addEventListener("click", () => {
-        if (t === tamanho) return;
-        location.hash = `#${t}`;
+        if (f.id !== info.id) location.hash = `#${f.id}`;
       });
       raiz.appendChild(b);
     });
   }
 
   function desenharPainel() {
-    const total = L.FICHAS[tamanho];
-    const gastas = fase.palpites.length + fase.dicas.length;
+    const total = info.fichas;
+    const gastas = estado.palpites.length + estado.dicas.length;
     const moedas = $("#moedas");
     moedas.innerHTML = "";
     for (let i = 0; i < total; i++) moedas.appendChild(el("i", i < total - gastas ? "moeda" : "moeda gasta"));
@@ -163,96 +170,132 @@
     $("#placar").textContent = led(placarDoDia());
   }
 
-  /* ---------- Tabuleiro ---------- */
+  /* ---------- Tabuleiros ---------- */
 
-  function montarTabuleiro() {
-    const raiz = $("#tabuleiro");
+  function montarTabuleiros() {
+    const raiz = $("#tabuleiros");
     raiz.innerHTML = "";
+    raiz.dataset.n = info.palavras;
     raiz.style.setProperty("--colunas", tamanho);
-    linhas = [];
-    for (let l = 0; l < L.FICHAS[tamanho]; l++) {
-      const linha = el("div", "linha oculta");
-      const pecas = [];
-      for (let c = 0; c < tamanho; c++) {
-        const peca = el("div", "peca");
-        peca.addEventListener("click", () => {
-          if (!linha.classList.contains("ativa")) return;
-          cursor = c;
-          desenhar();
-        });
-        linha.appendChild(peca);
-        pecas.push(peca);
+    tabuleiros = Array.from({ length: info.palavras }, (_, b) => {
+      const tab = el("div", "tabuleiro");
+      if (info.palavras > 1) tab.setAttribute("aria-label", `Tabuleiro ${b + 1}`);
+      const linhas = [];
+      for (let l = 0; l < info.fichas; l++) {
+        const linha = el("div", "linha oculta");
+        const pecas = [];
+        for (let c = 0; c < tamanho; c++) {
+          const peca = el("div", "peca");
+          peca.addEventListener("click", () => {
+            if (!linha.classList.contains("ativa")) return;
+            cursor = c;
+            desenhar();
+          });
+          linha.appendChild(peca);
+          pecas.push(peca);
+        }
+        tab.appendChild(linha);
+        linhas.push(pecas);
       }
-      raiz.appendChild(linha);
-      linhas.push(pecas);
-    }
+      raiz.appendChild(tab);
+      return { el: tab, linhas };
+    });
     dimensionar();
   }
 
   // Peças do maior tamanho que caiba entre o painel e o teclado
   function dimensionar() {
+    if (!info) return;
     const area = $("#area");
-    const vao = tamanho >= 8 ? 4 : 6;
-    const fileiras = L.FICHAS[tamanho];
-    const porLargura = (area.clientWidth - 24 - (tamanho - 1) * vao) / tamanho;
-    const porAltura = (area.clientHeight - 8 - (fileiras - 1) * vao) / fileiras;
-    const peca = Math.max(18, Math.floor(Math.min(porLargura, porAltura, 60)));
-    const raiz = $("#tabuleiro");
+    const n = info.palavras;
+    const colunas = n === 1 ? 1 : 2;
+    const fileiras = n === 4 ? 2 : 1;
+    const vao = n === 4 ? 3 : n === 2 || tamanho >= 8 ? 4 : 6;
+    const largura = area.clientWidth - 24;
+    const altura = area.clientHeight - 8;
+    const porLargura = (largura - (colunas * tamanho - colunas) * vao - (colunas - 1) * vao * 4) / (colunas * tamanho);
+    const linhas = fileiras * info.fichas;
+    const porAltura = (altura - (linhas - fileiras) * vao - (fileiras - 1) * vao * 4) / linhas;
+    const peca = Math.max(14, Math.floor(Math.min(porLargura, porAltura, 60)));
+    const raiz = $("#tabuleiros");
     raiz.style.setProperty("--peca", `${peca}px`);
     raiz.style.setProperty("--vao", `${vao}px`);
+    // Peças muito pequenas (Quarteto no celular): sem as marquinhas, só a cor
+    raiz.classList.toggle("miuda", peca < 26);
   }
 
-  // Casa com a letra revelada pela dica (enquanto ninguém escrever outra por cima)
-  const ehDica = (i) => fase.dicas.includes(i) && atual[i] === resposta[i];
+  const solo = () => info.palavras === 1;
+  const temDica = (b, i) => estado.dicas.some(([t, p]) => t === b && p === i);
 
-  // Começa uma linha nova: letras reveladas por dica já vêm preenchidas
+  // Começa uma linha nova. No solo, as letras da dica já vêm preenchidas; com vários
+  // tabuleiros elas aparecem "fantasmas" só no tabuleiro delas.
   function novaLinha() {
     atual = Array(tamanho).fill("");
-    for (const i of fase.dicas) atual[i] = resposta[i];
+    if (solo()) for (const [, i] of estado.dicas) atual[i] = respostas[0][i];
     cursor = 0;
   }
 
   function desenhar(revelar = -1) {
-    if (!resposta) return;
+    if (!respostas) return 0;
     const sit = situacao();
-    const ativa = sit.fim ? -1 : fase.palpites.length;
     const animar = revelar >= 0 && !semMovimento.matches;
     const atraso = Math.min(200, 1100 / tamanho);
-    linhas.forEach((pecas, l) => {
-      if (revelar < 0 && l === linhaRevelando) return;
-      const palpite = fase.palpites[l];
-      const linha = pecas[0].parentNode;
-      linha.className = "linha" + (l === ativa ? " ativa" : palpite ? "" : " oculta");
-      const cores = palpite && L.avaliar(palpite, resposta);
-      const letras = palpite && letrasDe(palpite);
-      pecas.forEach((peca, c) => {
-        if (palpite) {
-          peca.textContent = letras[c];
-          if (animar && l === revelar) {
-            // Cada peça acende na sua vez, como as lâmpadas de um placar
-            peca.className = "peca cheia";
-            setTimeout(() => {
-              peca.className = `peca acende ${cores[c]}`;
-              if (ajustes.sons) Som.acende(cores[c], c);
-            }, c * atraso);
+    let somTocando = false; // com vários tabuleiros, só um toca o som de cada letra
+    respostas.forEach((resposta, b) => {
+      const resolvidoEm = sit.resolvidos[b];
+      const ultima = resolvidoEm >= 0 ? resolvidoEm : Infinity;
+      const tab = tabuleiros[b];
+      tab.el.classList.toggle("resolvido", resolvidoEm >= 0 && !(animar && resolvidoEm === revelar));
+      tab.linhas.forEach((pecas, l) => {
+        if (revelar < 0 && l === linhaRevelando) return;
+        const palpite = l <= ultima ? estado.palpites[l] : undefined;
+        const ativa = !sit.fim && resolvidoEm < 0 && l === estado.palpites.length;
+        pecas[0].parentNode.className = "linha" + (ativa ? " ativa" : palpite ? "" : " oculta");
+        const cores = palpite && L.avaliar(palpite, resposta);
+        const letras = palpite && letrasDe(palpite);
+        const tocar = animar && l === revelar && palpite && !somTocando;
+        if (tocar) somTocando = true;
+        pecas.forEach((peca, c) => {
+          peca.style.animationDelay = "";
+          if (palpite) {
+            peca.textContent = letras[c];
+            if (animar && l === revelar) {
+              // Cada peça acende na sua vez, como as lâmpadas de um placar
+              peca.className = "peca cheia";
+              setTimeout(() => {
+                peca.className = `peca acende ${cores[c]}`;
+                if (tocar && ajustes.sons) Som.acende(cores[c], c);
+              }, c * atraso);
+            } else {
+              peca.className = `peca ${cores[c]}`;
+            }
+          } else if (ativa) {
+            const dica = temDica(b, c);
+            if (atual[c]) {
+              peca.textContent = atual[c];
+              peca.className = "peca" + (dica && atual[c] === resposta[c] ? " dica" : " cheia");
+            } else if (dica) {
+              peca.textContent = resposta[c];
+              peca.className = "peca dica fantasma";
+            } else {
+              peca.textContent = "";
+              peca.className = "peca";
+            }
+            if (c === cursor) peca.classList.add("cursor");
           } else {
-            peca.className = `peca ${cores[c]}`;
+            peca.textContent = "";
+            peca.className = "peca";
           }
-        } else if (l === ativa) {
-          peca.textContent = atual[c];
-          peca.className = "peca" + (ehDica(c) ? " dica" : atual[c] ? " cheia" : "") + (c === cursor ? " cursor" : "");
-        } else {
-          peca.textContent = "";
-          peca.className = "peca";
-        }
+        });
       });
     });
     return atraso * (tamanho - 1) + 450;
   }
 
-  function comemorar(linha) {
+  function comemorar(b, linha) {
+    tabuleiros[b].el.classList.add("resolvido");
     if (semMovimento.matches) return;
-    linhas[linha].forEach((peca, c) => {
+    tabuleiros[b].linhas[linha].forEach((peca, c) => {
       peca.classList.remove("acende");
       void peca.offsetWidth;
       peca.style.animationDelay = `${c * 70}ms`;
@@ -261,12 +304,14 @@
   }
 
   function tremer() {
-    const l = fase.palpites.length;
-    const linha = linhas[l] && linhas[l][0].parentNode;
-    if (!linha) return;
-    linha.classList.remove("treme");
-    void linha.offsetWidth;
-    linha.classList.add("treme");
+    const l = estado.palpites.length;
+    tabuleiros.forEach((tab) => {
+      const linha = tab.linhas[l] && tab.linhas[l][0].parentNode;
+      if (!linha || !linha.classList.contains("ativa")) return;
+      linha.classList.remove("treme");
+      void linha.offsetWidth;
+      linha.classList.add("treme");
+    });
   }
 
   /* ---------- Teclado ---------- */
@@ -280,6 +325,12 @@
       b.type = "button";
       b.dataset.k = k;
       b.setAttribute("aria-label", rotulo || k);
+      if (info.palavras > 1 && k.length === 1) {
+        const partes = el("span", "partes");
+        partes.dataset.n = info.palavras;
+        for (let i = 0; i < info.palavras; i++) partes.appendChild(el("i"));
+        b.appendChild(partes);
+      }
       if (typeof conteudo === "string") b.appendChild(el("span", "rotulo", conteudo));
       else b.appendChild(conteudo);
       // Não pega o foco: assim o Enter do teclado físico não aperta a última tecla clicada
@@ -312,11 +363,19 @@
   }
 
   function desenharTeclado() {
-    const estados = resposta ? L.letrasConhecidas(fase, resposta) : {};
-    for (const [k, b] of teclas) b.className = `tecla ${estados[k] || ""}`.trim();
+    const estados = respostas ? respostas.map((r, b) => L.letrasConhecidas(estado, r, b)) : [{}];
+    for (const [k, b] of teclas) {
+      if (estados.length === 1) {
+        b.className = `tecla ${estados[0][k] || ""}`.trim();
+      } else {
+        [...b.querySelector(".partes").children].forEach((parte, i) => { parte.className = estados[i][k] || ""; });
+        b.classList.toggle("toda-errada", estados.every((e) => e[k] === "errada"));
+        b.classList.toggle("alguma", estados.some((e) => e[k] && e[k] !== "errada"));
+      }
+    }
     if (teclaDica) {
-      const sit = resposta ? situacao() : null;
-      const pode = sit && !sit.fim && sit.restantes > 1 && L.proximaDica(fase, resposta) >= 0;
+      const sit = respostas ? situacao() : null;
+      const pode = sit && !sit.fim && sit.restantes > 1 && L.proximaDica(estado, respostas) !== null;
       teclaDica.classList.toggle("sem", !pode);
     }
   }
@@ -324,13 +383,13 @@
   /* ---------- Entrada ---------- */
 
   function tecla(k) {
-    if (!resposta || situacao().fim || document.querySelector("dialog[open]")) return;
+    if (!respostas || situacao().fim || document.querySelector("dialog[open]")) return;
     if (k === "Enter") return revelando ? undefined : enviar();
     if (k === "Dica") return revelando ? undefined : usarDica();
     if (k === "Backspace") {
       if (!atual[cursor] && cursor > 0) cursor--;
+      if (ajustes.sons) Som.apagar(cursor);
       atual[cursor] = "";
-      if (ajustes.sons) Som.apagar();
     } else if (k === "Delete") {
       atual[cursor] = "";
     } else if (k === "ArrowLeft") {
@@ -341,10 +400,10 @@
       const letra = L.semAcento(k);
       if (!/^[a-z]$/.test(letra)) return;
       // Escreve em sequência, inclusive por cima das letras da dica
+      if (ajustes.sons) Som.tecla(cursor);
       atual[cursor] = letra;
       cursor = Math.min(tamanho - 1, cursor + 1);
-      if (!fase.inicio) fase.inicio = Date.now();
-      if (ajustes.sons) Som.tecla();
+      if (!estado.inicio) estado.inicio = Date.now();
     }
     desenhar();
   }
@@ -359,14 +418,16 @@
     const palavra = atual.join("");
     if (palavra.length < tamanho) return recusar("faltam letras");
     if (!dicionario.grafia.has(palavra)) return recusar("essa não está no dicionário");
-    if (fase.palpites.includes(palavra)) return recusar("você já chutou essa");
+    if (estado.palpites.includes(palavra)) return recusar("você já chutou essa");
+    if (ajustes.sons) Som.enviar();
 
-    fase.palpites.push(palavra);
-    const linha = fase.palpites.length - 1;
+    const antes = situacao();
+    estado.palpites.push(palavra);
+    const linha = estado.palpites.length - 1;
     const sit = situacao();
     let resultado = null;
-    if (sit.fim && !fase.contabilizado) resultado = contabilizar(sit);
-    salvarFase();
+    if (sit.fim && !estado.contabilizado) resultado = contabilizar(sit);
+    salvar();
     novaLinha();
     limparAviso();
     desenharPainel();
@@ -382,53 +443,64 @@
       desenhar();
       desenharTeclado();
       anunciar(palavra);
-      if (sit.venceu) comemorar(linha);
+      const novos = respostas.map((_, b) => b).filter((b) => antes.resolvidos[b] < 0 && sit.resolvidos[b] === linha);
+      novos.forEach((b) => comemorar(b, linha));
       if (sit.fim) {
         desenharFases();
         if (ajustes.sons) (sit.venceu ? Som.vitoria : Som.derrota)();
         setTimeout(() => { if (desta === partida) abrirResultado(true, resultado); }, sit.venceu ? 900 : 500);
+      } else if (novos.length) {
+        if (ajustes.sons) Som.resolvido();
+        avisar(info.palavras > 1 ? `decifrou ${sit.quantasResolvidas} de ${info.palavras}!` : "boa!", 1400);
       }
     }, semMovimento.matches ? 0 : duracao);
   }
 
   function usarDica() {
     const sit = situacao();
-    const i = L.proximaDica(fase, resposta);
-    if (i < 0) return recusar("nada a revelar");
+    const proxima = L.proximaDica(estado, respostas);
+    if (!proxima) return recusar("nada a revelar");
     if (sit.restantes <= 1) return recusar("última ficha: sem dica");
-    fase.dicas.push(i);
-    if (!fase.inicio) fase.inicio = Date.now();
-    salvarFase();
-    atual[i] = resposta[i];
+    const [b, i] = proxima;
+    estado.dicas.push([b, i]);
+    if (!estado.inicio) estado.inicio = Date.now();
+    salvar();
+    if (solo()) atual[i] = respostas[0][i];
     if (ajustes.sons) Som.dica();
-    avisar(`dica: a ${i + 1}ª letra é ${letrasDe(resposta)[i].toUpperCase()} · −1 ficha`, 2400);
+    const letra = letrasDe(respostas[b])[i].toUpperCase();
+    avisar(`${info.palavras > 1 ? `tabuleiro ${b + 1}: ` : ""}a ${i + 1}ª letra é ${letra} · −1 ficha`, 2600);
     desenhar();
     desenharTeclado();
     desenharPainel();
-    const peca = linhas[fase.palpites.length] && linhas[fase.palpites.length][i];
-    if (peca && !semMovimento.matches) {
-      peca.classList.add("acende");
-    }
+    const peca = tabuleiros[b].linhas[estado.palpites.length] && tabuleiros[b].linhas[estado.palpites.length][i];
+    if (peca && !semMovimento.matches) peca.classList.add("acende");
   }
 
   // Para leitores de tela: diz o resultado de cada letra
   function anunciar(palpite) {
     const nomes = { certa: "certa", lugar: "em outro lugar", errada: "não tem" };
-    const av = L.avaliar(palpite, resposta);
     const letras = letrasDe(palpite);
-    $("#leitor").textContent = `${letras.join("").toUpperCase()}: ${letras.map((x, i) => `${x.toUpperCase()} ${nomes[av[i]]}`).join(", ")}.`;
+    const sit = situacao();
+    const partes = respostas.map((r, b) => {
+      if (sit.resolvidos[b] >= 0 && sit.resolvidos[b] < estado.palpites.length - 1) return "";
+      const av = L.avaliar(palpite, r);
+      const texto = letras.map((x, i) => `${x.toUpperCase()} ${nomes[av[i]]}`).join(", ");
+      return info.palavras > 1 ? `Tabuleiro ${b + 1}: ${texto}.` : `${texto}.`;
+    });
+    $("#leitor").textContent = `${letras.join("").toUpperCase()}. ${partes.join(" ")}`;
   }
 
   /* ---------- Pontos e histórico ---------- */
 
   function contabilizar(sit) {
-    fase.contabilizado = true;
-    fase.fim = Date.now();
-    fase.pontos = L.pontos(tamanho, sit.restantes, sit.venceu);
-    salvarFase();
+    estado.contabilizado = true;
+    estado.venceu = sit.venceu;
+    estado.fim = Date.now();
+    estado.pontos = L.pontos(tamanho, info.palavras, sit.quantasResolvidas, sit.restantes);
+    salvar();
 
     const h = lerHistorico();
-    const pf = h.fases[tamanho] || (h.fases[tamanho] = { jogos: 0, vitorias: 0, melhor: null });
+    const pf = h.fases[info.id] || (h.fases[info.id] = { jogos: 0, vitorias: 0, melhor: null });
     pf.jogos++;
     if (sit.venceu) {
       pf.vitorias++;
@@ -439,49 +511,64 @@
         h.melhorSeq = Math.max(h.melhorSeq, h.seq);
       }
     }
-    h.pontosTotais += fase.pontos;
+    h.pontosTotais += estado.pontos;
     const total = placarDoDia();
-    const novoRecorde = fase.pontos > 0 && total > h.recorde;
+    const novoRecorde = estado.pontos > 0 && total > h.recorde;
     if (novoRecorde) h.recorde = total;
     guardado.gravar("historico", h);
     return { novoRecorde };
   }
 
   const proximaFase = () => {
-    const i = L.FASES.indexOf(tamanho);
-    const ordem = [...L.FASES.slice(i + 1), ...L.FASES.slice(0, i)];
-    return ordem.find((t) => ["nova", "andando"].includes(statusFase(t)));
+    const i = IDS.indexOf(info.id);
+    return [...IDS.slice(i + 1), ...IDS.slice(0, i)].find((id) => ["nova", "andando"].includes(statusFase(id)));
   };
 
   function abrirResultado(animar, resultado) {
     const sit = situacao();
-    const i = L.FASES.indexOf(tamanho);
-    $("#res-rotulo").textContent = `fase ${i + 1} · ${tamanho} letras`;
+    const n = info.palavras;
+    const i = IDS.indexOf(info.id);
+    $("#res-rotulo").textContent = n > 1 ? `bônus · ${n} palavras de ${tamanho} letras` : `fase ${i + 1} · ${tamanho} letras`;
     const titulo = !sit.venceu ? "Fichas esgotadas"
-      : fase.palpites.length === 1 && !fase.dicas.length ? "De primeira!"
+      : estado.palpites.length === n && !estado.dicas.length ? (n > 1 ? "Perfeito!" : "De primeira!")
       : sit.restantes === 0 ? "No sufoco!"
       : "Fase limpa!";
     $("#res-titulo").textContent = titulo;
     $("#dlg-fase").classList.toggle("derrota", !sit.venceu);
 
-    const palavra = $("#res-palavra");
-    palavra.innerHTML = "";
-    palavra.style.setProperty("--colunas", tamanho);
-    letrasDe(resposta).forEach((x, c) => {
-      const p = el("span", `peca ${sit.venceu ? "certa" : "revelada"}`, x);
-      if (animar && !semMovimento.matches) p.style.animationDelay = `${c * 60}ms`;
-      palavra.appendChild(p);
+    const palavras = $("#res-palavras");
+    palavras.innerHTML = "";
+    palavras.style.setProperty("--colunas", tamanho);
+    palavras.dataset.n = n;
+    respostas.forEach((r, b) => {
+      const linha = el("div", "res-palavra");
+      letrasDe(r).forEach((x, c) => {
+        const p = el("span", `peca ${sit.resolvidos[b] >= 0 ? "certa" : "revelada"}`, x);
+        if (animar && !semMovimento.matches) p.style.animationDelay = `${(b * tamanho + c) * 50}ms`;
+        linha.appendChild(p);
+      });
+      palavras.appendChild(linha);
     });
 
-    const alvo = fase.pontos;
+    const alvo = estado.pontos;
     const caixa = $("#res-pontos");
-    $("#res-conta").textContent = sit.venceu
-      ? `${fmt.format(100 * tamanho)} da palavra + ${sit.restantes} ${sit.restantes === 1 ? "ficha" : "fichas"} × ${50 * tamanho}`
-      : `a palavra era ${letrasDe(resposta).join("").toUpperCase()}`;
+    const porPalavra = 100 * tamanho;
+    const porFicha = 50 * tamanho * n;
+    let conta;
+    if (sit.venceu) {
+      conta = n > 1 ? `${n} palavras × ${fmt.format(porPalavra)}` : `${fmt.format(porPalavra)} da palavra`;
+      conta += ` + ${plural(sit.restantes, "ficha", "fichas")} × ${fmt.format(porFicha)}`;
+    } else if (n > 1) {
+      const faltaram = respostas.filter((_, b) => sit.resolvidos[b] < 0).map((r) => letrasDe(r).join("").toUpperCase());
+      conta = `decifrou ${sit.quantasResolvidas} de ${n} · ${faltaram.length === 1 ? "faltou" : "faltaram"} ${faltaram.join(", ")}`;
+    } else {
+      conta = `a palavra era ${letrasDe(respostas[0]).join("").toUpperCase()}`;
+    }
+    $("#res-conta").textContent = conta;
     const detalhes = [`${sit.gastas} de ${sit.total} fichas`];
-    if (fase.dicas.length) detalhes.push(`${fase.dicas.length} ${fase.dicas.length === 1 ? "dica" : "dicas"}`);
-    if (fase.inicio && fase.fim) {
-      const s = Math.max(1, Math.round((fase.fim - fase.inicio) / 1000));
+    if (estado.dicas.length) detalhes.push(plural(estado.dicas.length, "dica", "dicas"));
+    if (estado.inicio && estado.fim) {
+      const s = Math.max(1, Math.round((estado.fim - estado.inicio) / 1000));
       detalhes.push(`${Math.floor(s / 60)}:${dois(s % 60)}`);
     }
     $("#res-detalhes").textContent = detalhes.join(" · ");
@@ -498,7 +585,7 @@
       const passo = (agora) => {
         const p = Math.min(1, (agora - inicio) / duracao);
         caixa.textContent = `+${fmt.format(Math.round(alvo * (1 - Math.pow(1 - p, 3))))}`;
-        if (ajustes.sons && agora - ultimoSom > 70 && p < 1) { Som.moeda(); ultimoSom = agora; }
+        if (ajustes.sons && agora - ultimoSom > 90 && p < 1) { Som.moeda(); ultimoSom = agora; }
         if (p < 1) requestAnimationFrame(passo);
       };
       requestAnimationFrame(passo);
@@ -510,7 +597,8 @@
 
     const prox = proximaFase();
     const btn = $("#btn-proxima");
-    btn.textContent = prox ? `Próxima: ${prox} letras ▸` : "Ver histórico";
+    const proxInfo = prox && L.fase(prox);
+    btn.textContent = !proxInfo ? "Ver histórico" : proxInfo.palavras > 1 ? `Próxima: bônus ${proxInfo.nome} ▸` : `Próxima: ${proxInfo.nome} ▸`;
     btn.onclick = () => {
       if (prox) location.hash = `#${prox}`;
       else abrir("#dlg-historico");
@@ -537,19 +625,18 @@
 
     const lista = $("#hist-fases");
     lista.innerHTML = "";
-    for (const t of L.FASES) {
-      const f = h.fases[t] || { jogos: 0, vitorias: 0, melhor: null };
+    for (const f of L.FASES) {
+      const r = h.fases[f.id] || { jogos: 0, vitorias: 0, melhor: null };
       const linha = el("div", "linha-fase");
-      const taxa = f.jogos ? f.vitorias / f.jogos : 0;
       const barra = el("span", "medidor");
       const cheio = el("i");
-      cheio.style.width = `${Math.round(taxa * 100)}%`;
+      cheio.style.width = `${Math.round((r.jogos ? r.vitorias / r.jogos : 0) * 100)}%`;
       barra.appendChild(cheio);
       linha.append(
-        el("strong", "", t),
-        el("span", "texto", f.jogos ? `limpou ${f.vitorias} de ${f.jogos}` : "ainda não jogou"),
+        el("strong", "", f.curto),
+        el("span", "texto", r.jogos ? `limpou ${r.vitorias} de ${r.jogos}` : f.palavras > 1 ? `${f.nome}: ainda não jogou` : "ainda não jogou"),
         barra,
-        el("span", "melhor", f.melhor != null ? `melhor: ${f.melhor} ${f.melhor === 1 ? "ficha" : "fichas"}` : "")
+        el("span", "melhor", r.melhor != null ? `melhor: ${plural(r.melhor, "ficha", "fichas")}` : "")
       );
       lista.appendChild(linha);
     }
@@ -558,15 +645,17 @@
   /* ---------- Compartilhar ---------- */
 
   function textoRodada() {
-    const linhasTexto = L.FASES.map((t) => {
-      const f = t === tamanho ? fase : lerFase(t);
-      const total = L.FICHAS[t];
-      const gastas = f.palpites.length + f.dicas.length;
-      const rotulo = String(t).padStart(2, " ");
-      if (!f.contabilizado) return `${rotulo} ${f.palpites.length ? "em jogo" : "—"}`;
-      if (!f.pontos) return `${rotulo} ✕ fichas esgotadas`;
-      const barra = "▰".repeat(gastas) + "▱".repeat(total - gastas);
-      return `${rotulo} ${barra} +${fmt.format(f.pontos)}${f.dicas.length ? " 💡" : ""}`;
+    const linhasTexto = L.FASES.map((f) => {
+      const e = estadoDe(f.id);
+      const gastas = e.palpites.length + e.dicas.length;
+      const rotulo = f.curto.padStart(2, " ");
+      if (!e.contabilizado) return `${rotulo} ${e.palpites.length ? "em jogo" : "—"}`;
+      const dica = e.dicas.length ? " 💡" : "";
+      if (e.venceu === false || !e.pontos) {
+        return e.pontos ? `${rotulo} ✕ parcial +${fmt.format(e.pontos)}${dica}` : `${rotulo} ✕ fichas esgotadas`;
+      }
+      const barra = "▰".repeat(gastas) + "▱".repeat(f.fichas - gastas);
+      return `${rotulo} ${barra} +${fmt.format(e.pontos)}${dica}`;
     });
     const endereco = location.origin + location.pathname;
     return `${NOME.toUpperCase()} · rodada #${String(dia).padStart(3, "0")}\n⚡ ${fmt.format(placarDoDia())} pontos\n\n${linhasTexto.join("\n")}\n\n${endereco}`;
@@ -685,7 +774,7 @@
       desenharTeclado();
     });
 
-    window.addEventListener("hashchange", () => iniciar(faseDaUrl() || faseInicial()));
+    window.addEventListener("hashchange", () => iniciar(faseInicial()));
     new ResizeObserver(() => dimensionar()).observe($("#area"));
 
     // Quem deixa a aba aberta de um dia para o outro recebe a rodada nova
