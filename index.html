@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decifra</title>
+<meta name="description" content="Decifre a palavra do dia em 6 tentativas. Também nos modos Dueto e Quarteto.">
+<meta name="theme-color" content="#0b1530">
+<meta property="og:title" content="Decifra">
+<meta property="og:description" content="Decifre a palavra do dia em 6 tentativas.">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="topo">
+  <div class="topo-lado">
+    <button class="icone" id="btn-ajuda" aria-label="Como jogar">?</button>
+  </div>
+  <div class="topo-centro">
+    <h1 class="titulo">Decifra</h1>
+    <span class="chip" id="chip">dia #001</span>
+  </div>
+  <div class="topo-lado">
+    <button class="icone" id="btn-estatisticas" aria-label="Estatísticas">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M10 20V4M15 20v-7M20 20v-11"/></svg>
+    </button>
+    <button class="icone" id="btn-ajustes" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="modos" aria-label="Modos de jogo">
+  <a href="#" data-modo="solo">Solo</a>
+  <a href="#dueto" data-modo="dueto">Dueto</a>
+  <a href="#quarteto" data-modo="quarteto">Quarteto</a>
+</nav>
+
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<main class="area" id="area">
+  <div class="tabuleiros" id="tabuleiros"></div>
+</main>
+
+<div class="teclado" id="teclado" aria-label="Teclado"></div>
+<div class="leitor" id="leitor" aria-live="polite"></div>
+
+<dialog id="dlg-ajuda" aria-labelledby="ajuda-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="ajuda-titulo" tabindex="-1" autofocus>Como jogar</h2>
+  <p>Decifre a palavra do dia em 6 tentativas. A cada palpite, as peças acendem mostrando o quão perto você chegou.</p>
+  <div class="exemplo" aria-label="Exemplo: T na posição certa"><span class="peca certa">t</span><span class="peca">u</span><span class="peca">r</span><span class="peca">m</span><span class="peca">a</span></div>
+  <p><b>Verde:</b> a letra T está na palavra e na posição certa.</p>
+  <div class="exemplo" aria-label="Exemplo: O em outra posição"><span class="peca">v</span><span class="peca">i</span><span class="peca lugar">o</span><span class="peca">l</span><span class="peca">a</span></div>
+  <p><b>Dourado:</b> a letra O está na palavra, mas em outra posição.</p>
+  <div class="exemplo" aria-label="Exemplo: G não faz parte"><span class="peca">p</span><span class="peca">u</span><span class="peca">l</span><span class="peca errada">g</span><span class="peca">a</span></div>
+  <p><b>Apagada:</b> a letra G não está na palavra.</p>
+  <p>Acentos entram sozinhos e não contam nas dicas. A palavra pode ter letras repetidas.</p>
+  <p>No <b>Dueto</b> são 2 palavras de uma vez em 7 tentativas; no <b>Quarteto</b>, 4 palavras em 9.</p>
+  <p>Toque numa peça da linha atual para escolher onde escrever. Palavra nova todo dia à meia-noite (horário de Brasília).</p>
+</dialog>
+
+<dialog id="dlg-estatisticas" aria-labelledby="est-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="est-titulo" tabindex="-1" autofocus>Estatísticas</h2>
+  <div class="numeros" id="est-numeros"></div>
+  <h3>Tentativas</h3>
+  <div class="distribuicao" id="est-distribuicao"></div>
+  <div class="rodape-estat" id="est-rodape">
+    <div class="proxima"><span>próxima palavra em</span><strong id="est-contagem">--:--:--</strong></div>
+    <button class="botao" id="btn-compartilhar">Compartilhar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-ajustes" aria-labelledby="ajustes-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="ajustes-titulo" tabindex="-1" autofocus>Ajustes</h2>
+  <label class="opcao">
+    <span><b>Modo difícil</b><small>No Solo, as dicas reveladas precisam ser usadas nos palpites seguintes. Só muda antes do primeiro palpite do dia.</small></span>
+    <input type="checkbox" id="opt-dificil" role="switch">
+  </label>
+  <label class="opcao">
+    <span><b>Alto contraste</b><small>Cores mais fáceis de distinguir (laranja e azul).</small></span>
+    <input type="checkbox" id="opt-contraste" role="switch">
+  </label>
+  <label class="opcao">
+    <span><b>Enter à esquerda</b><small>Coloca o ENTER no começo da última fileira do teclado.</small></span>
+    <input type="checkbox" id="opt-enter" role="switch">
+  </label>
+  <p class="creditos">Lista de palavras: <a href="https://github.com/fserb/pt-br" target="_blank" rel="noopener">fserb/pt-br</a> (MIT).</p>
+</dialog>
+
+<script src="js/logica.js"></script>
+<script src="js/palavras.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
