@@ -123,16 +123,76 @@ button { font: inherit; color: inherit; }
 .icone:hover, .icone:focus-visible { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 12px var(--neon-brilho); outline: none; }
 .icone svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---------- Fases da rodada ---------- */
-.fases { width: 100%; max-width: 540px; display: flex; gap: 6px; justify-content: center; padding: 10px 12px 2px; }
+/* ---------- Modo de jogo: Clássico, Dueto, Quarteto ---------- */
+[hidden] { display: none !important; }
+.modos {
+  width: calc(100% - 24px);
+  max-width: 516px;
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: rgba(14, 24, 56, .8);
+  border: 1px solid var(--linha-borda);
+  border-radius: 14px;
+}
+.modo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto-suave);
+  font-family: var(--fonte-placar);
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.modo svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
+.modo:hover { color: var(--texto); }
+.modo.atual { background: var(--ouro); color: var(--noite); box-shadow: 0 0 14px var(--lugar-brilho), inset 0 -3px 0 #b8892a; }
+.modo.atual svg { fill: rgba(11, 21, 48, .18); }
+/* Selo no canto: quantas fases do clássico já foram, ou se o bônus foi limpo/perdido */
+.modo .selo {
+  position: absolute;
+  top: -8px;
+  right: 4px;
+  font-style: normal;
+  font-family: var(--fonte);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: var(--tecla);
+  color: var(--texto-suave);
+  border: 1px solid var(--linha-borda);
+}
+.modo.limpa .selo { background: var(--certa); color: #04210f; border-color: var(--certa); }
+.modo.perdida .selo { background: #7f1d1d; color: #fecaca; border-color: #b91c1c; }
+.modo.andando .selo { color: var(--neon); border-color: rgba(34, 211, 238, .5); }
+
+/* Linha de baixo: fases do clássico (4 a 10 letras) ou a explicação do bônus */
+.subfaixa { width: 100%; max-width: 540px; height: 58px; display: flex; align-items: center; justify-content: center; padding: 6px 12px 0; transition: height .3s ease, padding .3s ease, opacity .2s; }
+.subfaixa.recolhida { height: 0; padding-top: 0; opacity: 0; overflow: hidden; pointer-events: none; }
+.fases { width: 100%; display: flex; gap: 8px; justify-content: center; }
 .fase {
   position: relative;
   flex: 1 1 0;
   min-width: 0;
-  max-width: 44px;
+  max-width: 50px;
   height: 46px;
   border: 1.5px solid var(--linha-borda);
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(14, 24, 56, .75);
   cursor: pointer;
   display: flex;
@@ -142,7 +202,7 @@ button { font: inherit; color: inherit; }
   padding: 0;
   transition: transform .15s, border-color .15s, box-shadow .15s;
 }
-.fase strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.35rem; line-height: 1; }
+.fase strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.4rem; line-height: 1; }
 .fase .marca { font-size: .65rem; font-weight: 700; height: .8rem; line-height: .8rem; }
 .fase:hover { border-color: #3a54a8; }
 .fase.andando { border-color: rgba(34, 211, 238, .55); }
@@ -152,10 +212,22 @@ button { font: inherit; color: inherit; }
 .fase.perdida { border-color: rgba(248, 113, 113, .5); }
 .fase.perdida strong { color: var(--texto-suave); }
 .fase.perdida .marca { color: var(--perdeu); }
-.fases .divisor { flex: none; width: 2px; margin: 8px 1px; border-radius: 1px; background: var(--linha-borda); }
-.fase.bonus strong { font-size: 1.15rem; color: var(--neon); text-shadow: 0 0 8px var(--neon-brilho); }
-.fase.bonus.limpa strong { color: var(--certa-letra); text-shadow: none; }
-.fase.atual { transform: translateY(-3px); border-color: var(--ouro); box-shadow: 0 0 14px var(--lugar-brilho), inset 0 0 0 1px var(--ouro); }
+.fase.atual { transform: translateY(-2px); border-color: var(--ouro); box-shadow: 0 0 14px var(--lugar-brilho), inset 0 0 0 1px var(--ouro); }
+.bonus-info { width: 100%; display: flex; gap: 8px; justify-content: center; }
+.etiqueta {
+  flex: 1 1 0;
+  max-width: 130px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px solid rgba(34, 211, 238, .45);
+  border-radius: 12px;
+  background: rgba(34, 211, 238, .06);
+}
+.etiqueta strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.5rem; line-height: 1; color: var(--neon); text-shadow: 0 0 10px var(--neon-brilho); }
+.etiqueta span { font-family: var(--fonte-placar); font-weight: 600; font-size: .78rem; letter-spacing: .1em; line-height: 1.05; text-transform: uppercase; color: var(--texto-suave); max-width: 4.5em; }
 
 /* ---------- Painel: fichas e placar ---------- */
 .painel {
@@ -191,7 +263,8 @@ button { font: inherit; color: inherit; }
 }
 
 /* ---------- Aviso ---------- */
-.aviso { min-height: 42px; display: flex; align-items: center; justify-content: center; padding: 4px 16px; text-align: center; }
+/* Flutua por cima do tabuleiro, sem ocupar espaço */
+.aviso { position: absolute; top: 0; left: 0; right: 0; z-index: 20; pointer-events: none; display: flex; justify-content: center; padding: 0 16px; text-align: center; }
 .aviso span {
   font-family: var(--fonte-placar);
   font-weight: 800;
@@ -208,8 +281,12 @@ button { font: inherit; color: inherit; }
 @keyframes entra { from { opacity: 0; transform: translateY(-8px) scale(.9); } }
 
 /* ---------- Tabuleiro: peças de LED ---------- */
-.area { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0 12px; }
-.tabuleiros { display: grid; gap: calc(var(--vao) * 4); }
+.area { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 16px 12px 6px; }
+/* --peca registrada como comprimento para poder animar a mudança de tamanho */
+@property --peca { syntax: "<length>"; inherits: true; initial-value: 56px; }
+.tabuleiros { display: grid; gap: calc(var(--vao) * 4); align-items: start; transition: --peca .35s ease; }
+.tabuleiros:not([data-n="1"]) .linha.oculta { display: none; }
+.area:has(.tabuleiros:not([data-n="1"])) { align-items: flex-start; }
 .tabuleiros[data-n="2"], .tabuleiros[data-n="4"] { grid-template-columns: repeat(2, auto); }
 .tabuleiros.carregando { opacity: .4; }
 .tabuleiro { display: grid; gap: var(--vao); align-content: start; }
@@ -463,16 +540,18 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
 :focus-visible { outline: 2px solid var(--neon); outline-offset: 2px; }
 .leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-@media (max-height: 680px) {
+@media (max-height: 700px) {
   .titulo { font-size: 1.8rem; }
-  .fases { padding-top: 6px; }
-  .fase { height: 38px; }
-  .aviso { min-height: 34px; }
+  .modos { margin-top: 6px; }
+  .modo { height: 34px; }
+  .subfaixa { height: 50px; }
+  .fase, .etiqueta { height: 40px; }
 }
 @media (max-width: 380px) {
-  .fases { gap: 4px; padding-left: 8px; padding-right: 8px; }
-  .fase strong { font-size: 1.15rem; }
-  .fase.bonus strong { font-size: 1rem; }
+  .fases { gap: 5px; }
+  .fase strong { font-size: 1.2rem; }
+  .modo { font-size: .92rem; gap: 4px; letter-spacing: .04em; }
+  .modo svg { width: 15px; height: 15px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition: none !important; }

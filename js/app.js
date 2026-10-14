@@ -141,23 +141,77 @@
 
   const situacao = () => L.situacao(estado, respostas, info.fichas);
 
+  // Ícones dos modos: 1, 2 e 4 quadradinhos
+  const ICONES = {
+    classico: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+    dueto: '<rect x="3" y="7" width="8" height="10" rx="2"/><rect x="13" y="7" width="8" height="10" rx="2"/>',
+    quarteto: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  };
+  const MARCAS = { limpa: "✓", perdida: "✕", andando: "•", nova: "" };
+  const NOMES_STATUS = { nova: "nova", andando: "em andamento", limpa: "limpa", perdida: "perdida" };
+  const SOLOS = L.FASES.filter((f) => f.palavras === 1);
+
   function desenharFases() {
-    const raiz = $("#fases");
-    raiz.innerHTML = "";
-    const nomes = { nova: "nova", andando: "em andamento", limpa: "limpa", perdida: "perdida" };
-    L.FASES.forEach((f, i) => {
-      if (f.palavras > 1 && L.FASES[i - 1].palavras === 1) raiz.appendChild(el("span", "divisor"));
-      const status = statusFase(f.id);
-      const b = el("button", `fase ${status}${f.palavras > 1 ? " bonus" : ""}${f.id === info.id ? " atual" : ""}`);
+    const modoAtual = info.palavras === 1 ? "classico" : info.id;
+
+    // Seletor de modo: Clássico (fases de 4 a 10 letras), Dueto e Quarteto
+    const modos = $("#modos");
+    modos.innerHTML = "";
+    const feitas = SOLOS.filter((f) => ["limpa", "perdida"].includes(statusFase(f.id))).length;
+    [
+      { id: "classico", nome: "Clássico", selo: feitas ? `${feitas}/${SOLOS.length}` : "", status: feitas === SOLOS.length ? "limpa" : "" },
+      ...L.FASES.filter((f) => f.palavras > 1).map((f) => ({ id: f.id, nome: f.nome, selo: MARCAS[statusFase(f.id)], status: statusFase(f.id) })),
+    ].forEach((m) => {
+      const b = el("button", `modo${m.id === modoAtual ? " atual" : ""}${m.status ? ` ${m.status}` : ""}`);
       b.type = "button";
-      b.setAttribute("aria-label", `${f.palavras > 1 ? `Bônus ${f.nome}` : `Fase ${i + 1}, ${f.nome}`}, ${nomes[status]}`);
-      if (f.id === info.id) b.setAttribute("aria-current", "step");
-      b.append(el("strong", "", f.curto), el("span", "marca", { limpa: "✓", perdida: "✕", andando: "•", nova: "" }[status]));
+      if (m.id === modoAtual) b.setAttribute("aria-current", "page");
+      const icone = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icone.setAttribute("viewBox", "0 0 24 24");
+      icone.setAttribute("aria-hidden", "true");
+      icone.innerHTML = ICONES[m.id];
+      b.append(icone, el("span", "", m.nome));
+      if (m.selo) b.appendChild(el("em", "selo", m.selo));
       b.addEventListener("click", () => {
-        if (f.id !== info.id) location.hash = `#${f.id}`;
+        if (m.id === modoAtual) return;
+        if (m.id !== "classico") location.hash = `#${m.id}`;
+        else {
+          // Volta para a primeira fase do clássico que ainda não terminou
+          const prox = SOLOS.find((f) => ["nova", "andando"].includes(statusFase(f.id))) || SOLOS[1];
+          location.hash = `#${prox.id}`;
+        }
       });
-      raiz.appendChild(b);
+      modos.appendChild(b);
     });
+
+    // Linha de baixo: as fases do clássico ou a explicação do bônus
+    const fases = $("#fases");
+    const bonus = $("#bonus-info");
+    // No bônus, depois do primeiro chute as etiquetas saem para sobrar espaço aos tabuleiros
+    $(".subfaixa").classList.toggle("recolhida", modoAtual !== "classico" && (estado.palpites.length > 0 || estado.dicas.length > 0));
+    fases.hidden = modoAtual !== "classico";
+    bonus.hidden = modoAtual === "classico";
+    fases.innerHTML = "";
+    if (modoAtual === "classico") {
+      SOLOS.forEach((f, i) => {
+        const status = statusFase(f.id);
+        const b = el("button", `fase ${status}${f.id === info.id ? " atual" : ""}`);
+        b.type = "button";
+        b.setAttribute("aria-label", `Fase ${i + 1}, ${f.nome}, ${NOMES_STATUS[status]}`);
+        if (f.id === info.id) b.setAttribute("aria-current", "step");
+        b.append(el("strong", "", f.curto), el("span", "marca", MARCAS[status]));
+        b.addEventListener("click", () => {
+          if (f.id !== info.id) location.hash = `#${f.id}`;
+        });
+        fases.appendChild(b);
+      });
+    } else {
+      bonus.innerHTML = "";
+      for (const [n, t] of [[info.palavras, "palavras juntas"], [info.tamanho, "letras cada"], [info.fichas, "fichas"]]) {
+        const etiqueta = el("span", "etiqueta");
+        etiqueta.append(el("strong", "", n), el("span", "", t));
+        bonus.appendChild(etiqueta);
+      }
+    }
   }
 
   function desenharPainel() {
@@ -211,17 +265,31 @@
     const colunas = n === 1 ? 1 : 2;
     const fileiras = n === 4 ? 2 : 1;
     const vao = n === 4 ? 3 : n === 2 || tamanho >= 8 ? 4 : 6;
-    const largura = area.clientWidth - 24;
-    const altura = area.clientHeight - 8;
+    const estilo = getComputedStyle(area);
+    const largura = area.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
+    const altura = area.clientHeight - parseFloat(estilo.paddingTop) - parseFloat(estilo.paddingBottom) - 4;
     const porLargura = (largura - (colunas * tamanho - colunas) * vao - (colunas - 1) * vao * 4) / (colunas * tamanho);
-    const linhas = fileiras * info.fichas;
+    // Solo: espaço reservado para todas as linhas (o tabuleiro não muda de tamanho).
+    // Dueto/Quarteto: só as linhas em uso; as peças vão diminuindo conforme o jogo avança.
+    let linhas = fileiras * info.fichas;
+    if (n > 1) {
+      linhas = 0;
+      for (let f = 0; f < fileiras; f++) linhas += Math.max(linhasVisiveis(2 * f), linhasVisiveis(2 * f + 1));
+    }
     const porAltura = (altura - (linhas - fileiras) * vao - (fileiras - 1) * vao * 4) / linhas;
-    const peca = Math.max(14, Math.floor(Math.min(porLargura, porAltura, 60)));
+    const peca = Math.max(14, Math.floor(Math.min(porLargura, porAltura, 58)));
     const raiz = $("#tabuleiros");
     raiz.style.setProperty("--peca", `${peca}px`);
     raiz.style.setProperty("--vao", `${vao}px`);
     // Peças muito pequenas (Quarteto no celular): sem as marquinhas, só a cor
     raiz.classList.toggle("miuda", peca < 26);
+  }
+
+  function linhasVisiveis(b) {
+    if (!respostas) return 1;
+    const sit = situacao();
+    if (sit.resolvidos[b] >= 0) return sit.resolvidos[b] + 1;
+    return Math.max(1, sit.fim ? estado.palpites.length : estado.palpites.length + 1);
   }
 
   const solo = () => info.palavras === 1;
@@ -289,6 +357,7 @@
         });
       });
     });
+    if (info.palavras > 1) dimensionar();
     return atraso * (tamanho - 1) + 450;
   }
 
@@ -431,6 +500,7 @@
     novaLinha();
     limparAviso();
     desenharPainel();
+    if (linha === 0) desenharFases();
 
     revelando = true;
     linhaRevelando = linha;
@@ -465,6 +535,7 @@
     estado.dicas.push([b, i]);
     if (!estado.inicio) estado.inicio = Date.now();
     salvar();
+    desenharFases();
     if (solo()) atual[i] = respostas[0][i];
     if (ajustes.sons) Som.dica();
     const letra = letrasDe(respostas[b])[i].toUpperCase();

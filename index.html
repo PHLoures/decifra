@@ -35,7 +35,12 @@
   </div>
 </header>
 
-<nav class="fases" id="fases" aria-label="Fases da rodada"></nav>
+<nav class="modos" id="modos" aria-label="Modo de jogo"></nav>
+
+<div class="subfaixa">
+  <nav class="fases" id="fases" aria-label="Fases do modo clássico"></nav>
+  <div class="bonus-info" id="bonus-info" hidden></div>
+</div>
 
 <div class="painel">
   <div class="painel-bloco">
@@ -48,9 +53,8 @@
   </div>
 </div>
 
-<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
-
 <main class="area" id="area">
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
   <div class="tabuleiros" id="tabuleiros"></div>
 </main>
 
