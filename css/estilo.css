@@ -680,6 +680,8 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #dcdbea; 
 .cartao-jogo:nth-child(2) .icone-jogo { color: var(--certa); }
 .cartao-jogo:nth-child(3) .icone-jogo { color: var(--neon); }
 .cartao-jogo:nth-child(4) .icone-jogo { color: #c4b0f5; }
+.cartao-jogo:nth-child(5) .icone-jogo { color: #f5a3c0; }
+.cartao-jogo:nth-child(6) .icone-jogo { color: #7fdcae; }
 .texto-jogo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .texto-jogo strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.3rem; letter-spacing: .03em; text-transform: uppercase; line-height: 1.05; }
 .texto-jogo small { font-size: .8rem; color: var(--texto-suave); }

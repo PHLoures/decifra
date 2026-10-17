@@ -21,6 +21,14 @@
       id: "cobrinha", nome: "Cobrinha", descricao: "Coma as frutas e cresça sem bater", caminho: "cobrinha/",
       icone: '<path d="M4 17h9a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h8"/><circle cx="19" cy="5" r="1.6"/>',
     },
+    {
+      id: "tetris", nome: "Tetris", descricao: "Encaixe as peças e complete linhas", caminho: "tetris/",
+      icone: '<rect x="3" y="13" width="6" height="6" rx="1"/><rect x="9" y="13" width="6" height="6" rx="1"/><rect x="15" y="13" width="6" height="6" rx="1"/><rect x="9" y="7" width="6" height="6" rx="1"/>',
+    },
+    {
+      id: "memoria", nome: "Memória", descricao: "Vire as cartas e ache os pares", caminho: "memoria/",
+      icone: '<rect x="3" y="6" width="9" height="13" rx="2"/><path d="M14.5 5.5l3.4.9a2 2 0 0 1 1.4 2.4l-2.4 9.1a2 2 0 0 1-2.4 1.4l-.5-.1"/><path d="M7.5 10.5l1 2 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>',
+    },
   ];
   const atual = document.body.dataset.jogo;
 
