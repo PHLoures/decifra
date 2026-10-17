@@ -86,10 +86,13 @@
     return e.fila.shift();
   }
 
+  // Nasce acima do campo e já desce uma linha (se der), para aparecer na hora
   function nascer(e, tipo) {
     e.atual = { tipo, rot: 0, x: 3, y: 0 };
     e.podeGuardar = true;
+    e.pecas++;
     if (colide(e, e.atual)) e.fim = true;
+    else if (!colide(e, { ...e.atual, y: 1 })) e.atual.y = 1;
   }
 
   function criar({ dificuldade = "facil", aleatorio = Math.random } = {}) {
@@ -106,6 +109,7 @@
       nivel: nivelInicial,
       fim: false,
       atual: null,
+      pecas: 0, // quantas peças já nasceram (a tela usa para saber quando veio uma nova)
     };
     nascer(e, puxar(e));
     return e;

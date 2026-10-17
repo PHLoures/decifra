@@ -28,6 +28,16 @@ test("peça nasce no topo, no meio, e anda até a parede", () => {
   assert.ok(T.celulasDe(e.atual).some(([x]) => x === 0));
 });
 
+test("peça nova já nasce aparecendo no topo do campo, e cada uma é contada", () => {
+  const e = T.criar({ aleatorio: semente(8) });
+  assert.equal(e.atual.y, 1);
+  assert.ok(T.celulasDe(e.atual).some(([, y]) => y >= T.ESCONDIDAS));
+  assert.equal(e.pecas, 1);
+  T.soltar(e);
+  T.concluir(e, T.travar(e));
+  assert.equal(e.pecas, 2);
+});
+
 test("girar encostado na parede usa o ajuste e não atravessa", () => {
   const e = T.criar({ aleatorio: semente(1) });
   e.atual = { tipo: "T", rot: 1, x: -1, y: 5 }; // em pé, colado na parede esquerda

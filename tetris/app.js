@@ -12,8 +12,8 @@
   };
   const ATRASO_TRAVA = 500; // ms que a peça fica apoiada antes de travar
   const MAX_AJUSTES = 15; // quantas vezes mover/girar no chão adia a trava
-  const DAS = 160; // ms segurando até começar a repetir o movimento
-  const ARR = 45; // ms entre repetições
+  const DAS = 220; // ms segurando até começar a repetir o movimento (toque curto anda 1 casa só)
+  const ARR = 50; // ms entre repetições
   const LIMPEZA = 260; // ms da animação de linhas completas
 
   let dificuldade = guardado.ler("tetris:dificuldade", "facil");
@@ -25,6 +25,8 @@
   let quedaAcum = 0;
   let travaDesde = null;
   let ajustes = 0;
+  let linhaMaisBaixa = 0; // ao descer mais que isso, os ajustes no chão recomeçam
+  let pecaVista = 0;
   let limpando = null; // { linhas, desde }
   let segurando = null; // { dir, desde, ultimo }
   let descendo = false;
@@ -113,6 +115,20 @@
     $("#nivel").textContent = jogo.nivel;
   }
 
+  // Peça nova: a seta que ainda estava segurada não a joga direto para a parede,
+  // e os ajustes no chão recomeçam sempre que a peça desce mais do que já tinha descido
+  function vigiarPeca(agora) {
+    if (jogo.pecas !== pecaVista) {
+      pecaVista = jogo.pecas;
+      linhaMaisBaixa = jogo.atual.y;
+      ajustes = 0;
+      if (segurando) segurando.desde = segurando.ultimo = agora;
+    } else if (jogo.atual.y > linhaMaisBaixa) {
+      linhaMaisBaixa = jogo.atual.y;
+      ajustes = 0;
+    }
+  }
+
   // Mover ou girar com a peça apoiada adia a trava (até um limite)
   function depoisDeAjustar() {
     if (T.noChao(jogo)) {
@@ -156,6 +172,7 @@
     }
     if (limpando) return;
     acoes[acao]();
+    if (estadoTela === "jogando" && !limpando) vigiarPeca(performance.now());
     desenhar(performance.now());
   }
 
@@ -189,6 +206,7 @@
         if (jogo.fim) return terminar();
       }
     } else {
+      vigiarPeca(agora);
       // Segurando ← ou →: depois de um tempinho, o movimento se repete
       if (segurando && agora - segurando.desde >= DAS && agora - segurando.ultimo >= ARR) {
         segurando.ultimo = agora;
@@ -206,6 +224,7 @@
           if (descendo) T.descer(jogo);
           else T.cair(jogo);
         }
+        vigiarPeca(agora);
         if (descendo) atualizarPlacar();
       }
     }
