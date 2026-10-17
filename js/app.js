@@ -501,7 +501,11 @@
       if (vazia(cursor) || travada(cursor)) {
         let i = cursor - 1;
         while (i >= 0 && (travada(i) || vazia(i))) i--;
-        if (i < 0) return;
+        // Nada para apagar à esquerda: só volta uma casa
+        if (i < 0) {
+          cursor = Math.max(0, cursor - 1);
+          return desenhar();
+        }
         cursor = i;
       }
       if (ajustes.sons) Som.apagar(cursor);
