@@ -1,5 +1,5 @@
 // Deixa o jogo funcionando sem internet. Ao mudar a lista de ARQUIVOS, aumente a VERSAO.
-const VERSAO = "v22";
+const VERSAO = "v23";
 const CACHE = `decifra-${VERSAO}`;
 const ARQUIVOS = [
   "./",
@@ -8,6 +8,21 @@ const ARQUIVOS = [
   "js/logica.js",
   "js/som.js",
   "js/app.js",
+  "js/comum.js",
+  "js/menu-jogos.js",
+  "conexoes/",
+  "conexoes/estilo.css",
+  "conexoes/desafios.js",
+  "conexoes/logica.js",
+  "conexoes/app.js",
+  "campo-minado/",
+  "campo-minado/estilo.css",
+  "campo-minado/logica.js",
+  "campo-minado/app.js",
+  "cobrinha/",
+  "cobrinha/estilo.css",
+  "cobrinha/logica.js",
+  "cobrinha/app.js",
   // As listas mais jogadas já ficam guardadas; as outras entram no cache na primeira vez
   "dados/4.txt",
   "dados/5.txt",

@@ -2,7 +2,15 @@
 
 Jogo de palavras em português com cara de placar de estádio, alma de fliperama e cores em tons pastel. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, em três modos: Clássico, **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
 
-## Como funciona
+## Outros jogos da coleção
+
+O botão de controle no topo abre o menu com os outros jogos, todos no mesmo visual:
+
+- **Conexões** (`conexoes/`): um desafio por dia com 16 palavras para separar em 4 grupos escondidos. São 4 erros permitidos e os grupos vão do fácil (amarelo) à pegadinha (roxo). Os desafios ficam em `conexoes/desafios.js`; para acrescentar, siga a regra comentada no topo do arquivo, que garante uma solução única.
+- **Campo Minado** (`campo-minado/`): três dificuldades. Tocar abre, segurar (ou clique direito, ou modo bandeira) marca. O primeiro toque nunca é mina, e tem cronômetro e melhor tempo por nível.
+- **Cobrinha** (`cobrinha/`): no estilo do Snake do Google, com movimento suave, setas, W A S D, deslizar o dedo ou botões. Três velocidades, cada uma com o seu recorde.
+
+## Como funciona o Decifra
 
 - **Fases:** uma palavra por tamanho (4, 5, 6, 7, 8, 9 e 10 letras), na ordem que você quiser.
 - **Modos:** **Clássico** (1 palavra), **Dueto** (2 palavras ao mesmo tempo, 1 ficha a mais) e **Quarteto** (4 palavras, 3 fichas a mais), cada um com fases de 4 a 10 letras. No Dueto e no Quarteto cada chute vale para todos os tabuleiros, e cada tecla mostra a situação da letra em cada um.
@@ -41,7 +49,7 @@ Depois abra http://localhost:8765.
 ## Testes
 
 ```bash
-node --test testes/logica.test.js
+node --test testes/*.test.js
 ```
 
 ## Listas de palavras

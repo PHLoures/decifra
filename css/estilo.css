@@ -663,3 +663,31 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #dcdbea; 
 #res-pontos, .res-dia { display: none !important; }
 .res-pontos { margin: 12px 0 0; }
 .res-pontos span:empty { display: none; }
+
+/* ---------- Menu de jogos (todas as páginas) ---------- */
+.lista-jogos { display: grid; gap: 8px; }
+.cartao-jogo {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 14px;
+  background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda);
+  color: var(--texto); text-decoration: none;
+  transition: border-color .15s, transform .15s;
+}
+.cartao-jogo:hover { border-color: var(--ouro); transform: translateY(-1px); }
+.cartao-jogo.atual { border-color: var(--ouro); box-shadow: inset 0 0 0 1px var(--ouro); }
+.icone-jogo { flex: none; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: var(--tecla); color: var(--ouro); }
+.icone-jogo svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cartao-jogo:nth-child(2) .icone-jogo { color: var(--certa); }
+.cartao-jogo:nth-child(3) .icone-jogo { color: var(--neon); }
+.cartao-jogo:nth-child(4) .icone-jogo { color: #c4b0f5; }
+.texto-jogo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.texto-jogo strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.3rem; letter-spacing: .03em; text-transform: uppercase; line-height: 1.05; }
+.texto-jogo small { font-size: .8rem; color: var(--texto-suave); }
+.seta-jogo { margin-left: auto; font-size: 1.4rem; color: var(--texto-suave); }
+.cartao-jogo.atual .seta-jogo { font-family: var(--fonte-placar); font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ouro); }
+
+/* Painel com números (estatísticas dos jogos novos) */
+.numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+.numeros > div { background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); border-radius: 10px; padding: 8px 4px; }
+.numeros strong { display: block; font-family: var(--fonte-placar); font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--ouro); }
+.numeros span { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); margin-top: 4px; line-height: 1.25; }

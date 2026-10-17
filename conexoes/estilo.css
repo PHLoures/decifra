@@ -1,0 +1,101 @@
+/* Conexões: grade de 16 palavras e faixas coloridas dos grupos encontrados */
+:root {
+  --nivel-0: #f6dc8a;  --nivel-0-texto: #4a3a08;
+  --nivel-1: #7fdcae;  --nivel-1-texto: #1f3b30;
+  --nivel-2: #8ccbf5;  --nivel-2-texto: #0d2f45;
+  --nivel-3: #c4b0f5;  --nivel-3-texto: #2c1f55;
+}
+
+.instrucao {
+  margin: 10px 0 0;
+  font-family: var(--fonte-placar);
+  font-weight: 600;
+  font-size: .9rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.area-conexoes {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.grupos, .grade { display: grid; gap: 8px; }
+.grade { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.palavra {
+  height: clamp(54px, 10.5dvh, 78px);
+  min-width: 0;
+  padding: 0 4px;
+  border: none;
+  border-radius: 12px;
+  background: var(--tecla);
+  color: var(--texto);
+  box-shadow: inset 0 -3px 0 var(--tecla-fundo);
+  font-family: var(--fonte-placar);
+  font-weight: 800;
+  font-size: clamp(.95rem, 4.4vw, 1.25rem);
+  letter-spacing: .02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s, background .12s, color .12s;
+}
+.palavra.media { font-size: clamp(.82rem, 3.7vw, 1.08rem); }
+.palavra.longa { font-size: clamp(.7rem, 3.1vw, .95rem); letter-spacing: 0; }
+.palavra:active { transform: scale(.96); }
+.palavra.selecionada { background: var(--ouro); color: var(--noite); box-shadow: inset 0 -3px 0 var(--ouro-fundo); }
+.palavra.treme { animation: treme .4s; }
+.palavra.pula { animation: pula-palavra .4s ease both; }
+@keyframes pula-palavra { 40% { transform: translateY(-14%); } }
+.grade.fim .palavra { cursor: default; }
+
+/* Faixa de um grupo resolvido */
+.faixa {
+  min-height: clamp(54px, 10.5dvh, 78px);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 10px;
+  text-align: center;
+  animation: entra-faixa .35s cubic-bezier(.2, 1.3, .4, 1) both;
+}
+.faixa strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; }
+.faixa span { font-size: .8rem; font-weight: 700; letter-spacing: .02em; opacity: .85; }
+.faixa.revelada { opacity: .8; }
+.nivel-0 { background: var(--nivel-0); color: var(--nivel-0-texto); }
+.nivel-1 { background: var(--nivel-1); color: var(--nivel-1-texto); }
+.nivel-2 { background: var(--nivel-2); color: var(--nivel-2-texto); }
+.nivel-3 { background: var(--nivel-3); color: var(--nivel-3-texto); }
+@keyframes entra-faixa { from { opacity: 0; transform: scale(.94); } }
+
+.rodape-conexoes { width: 100%; max-width: 560px; padding: 4px 14px 16px; display: grid; gap: 12px; }
+.erros { display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--fonte-placar); font-weight: 600; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: var(--texto-suave); }
+.bolinhas { display: flex; gap: 6px; }
+.bolinhas i { width: 12px; height: 12px; border-radius: 50%; background: var(--ouro); transition: background .2s, transform .2s; }
+.bolinhas i.gasta { background: transparent; box-shadow: inset 0 0 0 2px var(--linha-borda); transform: scale(.85); }
+.acoes { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; }
+.acoes .botao { padding: 11px 6px 13px; font-size: clamp(.9rem, 4vw, 1.1rem); }
+.acoes .botao:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Ajuda e resultado */
+.legenda-niveis { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: .8rem; color: var(--texto-suave); align-items: center; }
+.legenda-niveis i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.mosaico { display: grid; gap: 4px; justify-content: center; margin: 4px 0 10px; }
+.mosaico div { display: flex; gap: 4px; }
+.mosaico i { width: 22px; height: 22px; border-radius: 5px; }
+#dlg-fim .numeros { margin-top: 14px; }
