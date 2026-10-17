@@ -1,6 +1,6 @@
 # Decifra
 
-Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, em três modos: Clássico, **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
+Jogo de palavras em português com cara de placar de estádio, alma de fliperama e cores em tons pastel. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, em três modos: Clássico, **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
 
 ## Como funciona
 
@@ -8,8 +8,8 @@ Jogo de palavras em português com cara de placar de estádio e alma de fliperam
 - **Modos:** **Clássico** (1 palavra), **Dueto** (2 palavras ao mesmo tempo, 1 ficha a mais) e **Quarteto** (4 palavras, 3 fichas a mais), cada um com fases de 4 a 10 letras. No Dueto e no Quarteto cada chute vale para todos os tabuleiros, e cada tecla mostra a situação da letra em cada um.
 - **Fichas:** cada chute gasta uma ficha. São 6 fichas nas fases de 4 e 5 letras, 7 nas de 6 e 7, e 8 nas de 8 a 10.
 - **As letras acendem:**
-  - verde com um traço embaixo: a letra está no lugar certo;
-  - dourada com um ponto embaixo: a letra está na palavra, mas em outro lugar;
+  - menta (verde-claro) com um traço embaixo: a letra está no lugar certo;
+  - pêssego com um ponto embaixo: a letra está na palavra, mas em outro lugar;
   - apagada: a letra não está na palavra.
 - **Dica:** revela a próxima letra ainda desconhecida (no Dueto e no Quarteto, do primeiro tabuleiro em aberto) e custa uma ficha. Não dá para usar na última ficha.
 - **Pontos:** `100 × letras` por palavra decifrada e, fechando a fase, mais `50 × letras` por ficha que sobrou, para cada palavra. No Dueto e no Quarteto as palavras decifradas pontuam mesmo se a fase não fechar. A soma das fases é o placar do dia, e o melhor dia vira recorde.
