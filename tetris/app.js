@@ -392,8 +392,9 @@
 
   const TECLAS = {
     ArrowLeft: "esquerda", ArrowRight: "direita", ArrowDown: "baixo", ArrowUp: "girar",
-    x: "girar", X: "girar", z: "girar-anti", Z: "girar-anti", " ": "soltar",
-    c: "guardar", C: "guardar", Shift: "guardar", p: "pausa", P: "pausa", Escape: "pausa",
+    a: "esquerda", A: "esquerda", d: "direita", D: "direita", s: "baixo", S: "baixo", w: "girar", W: "girar",
+    x: "girar", X: "girar", z: "girar-anti", Z: "girar-anti", q: "girar-anti", Q: "girar-anti", e: "girar", E: "girar",
+    " ": "soltar", c: "guardar", C: "guardar", Shift: "guardar", p: "pausa", P: "pausa", Escape: "pausa",
   };
   function apertar(acao) {
     if (acao === "esquerda" || acao === "direita") {
