@@ -160,6 +160,10 @@
     return (fases.find((f) => !terminada(f.id)) || fases[1]).id;
   };
 
+  // Fecha a lista de tamanhos ao tocar fora dela (registrado uma vez só)
+  let fecharListaLetras = () => {};
+  document.addEventListener("click", (e) => { if (!$("#fases").contains(e.target)) fecharListaLetras(); });
+
   function desenharFases() {
     // Seletor de modo: Clássico, Dueto e Quarteto, com selo de quantas fases já foram
     const modos = $("#modos");
@@ -189,21 +193,39 @@
     $("#progresso").textContent = `${feitasNoDia}/${L.FASES.length}`;
     $("#progresso").title = `${feitasNoDia} de ${L.FASES.length} fases jogadas hoje`;
 
-    // Linha de baixo: as fases de 4 a 10 letras do modo atual
+    // Linha de baixo: botão "5 letras ▾" que abre a lista de tamanhos (4 a 10)
     const fases = $("#fases");
     fases.innerHTML = "";
+    const seletor = el("button", "seletor-letras");
+    seletor.type = "button";
+    seletor.setAttribute("aria-haspopup", "listbox");
+    seletor.setAttribute("aria-expanded", "false");
+    seletor.append(el("strong", "", info.tamanho), el("span", "", "letras"), el("i", "seta", "▾"));
+    const lista = el("div", "lista-letras");
+    lista.setAttribute("role", "listbox");
+    lista.hidden = true;
     fasesDo(info.modo).forEach((f) => {
       const status = statusFase(f.id);
-      const b = el("button", `fase ${status}${f.id === info.id ? " atual" : ""}`);
-      b.type = "button";
-      b.setAttribute("aria-label", `${f.nome}, ${NOMES_STATUS[status]}`);
-      if (f.id === info.id) b.setAttribute("aria-current", "step");
-      b.append(el("strong", "", f.curto), el("span", "marca", MARCAS[status]));
-      b.addEventListener("click", () => {
+      const op = el("button", `opcao-letras ${status}${f.id === info.id ? " atual" : ""}`);
+      op.type = "button";
+      op.setAttribute("role", "option");
+      op.setAttribute("aria-selected", f.id === info.id ? "true" : "false");
+      op.setAttribute("aria-label", `${f.nome}, ${NOMES_STATUS[status]}`);
+      op.append(el("strong", "", f.curto), el("span", "", "letras"), el("em", "marca", MARCAS[status]));
+      op.addEventListener("click", () => {
+        fecharLista();
         if (f.id !== info.id) location.hash = `#${f.id}`;
       });
-      fases.appendChild(b);
+      lista.appendChild(op);
     });
+    const fecharLista = () => { lista.hidden = true; seletor.setAttribute("aria-expanded", "false"); };
+    seletor.addEventListener("click", (e) => {
+      e.stopPropagation();
+      lista.hidden = !lista.hidden;
+      seletor.setAttribute("aria-expanded", String(!lista.hidden));
+    });
+    fecharListaLetras = fecharLista;
+    fases.append(seletor, lista);
   }
 
   function desenharPainel() {

@@ -622,3 +622,39 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #dcdbea; 
 .fase.limpa.atual, .fase.perdida.atual, .fase.andando.atual { background: var(--tecla); }
 .subfaixa { justify-content: center; }
 .subfaixa .fases { margin: 0 auto; }
+
+/* Seletor de tamanho: botão "5 letras ▾" com lista suspensa */
+.fases { position: relative; width: auto; background: none; border: none; padding: 0; justify-content: center; }
+.seletor-letras {
+  display: flex; align-items: baseline; gap: 6px;
+  height: 40px; padding: 0 16px;
+  border: 1px solid var(--linha-borda); border-radius: 12px;
+  background: rgba(36, 40, 62, .8); cursor: pointer;
+  font-family: var(--fonte-placar); text-transform: uppercase;
+}
+.seletor-letras:hover, .seletor-letras[aria-expanded="true"] { border-color: var(--ouro); }
+.seletor-letras strong { align-self: center; font-size: 1.5rem; font-weight: 800; color: var(--ouro); line-height: 1; }
+.seletor-letras span { align-self: center; font-size: .95rem; font-weight: 800; letter-spacing: .1em; color: var(--texto); }
+.seletor-letras .seta { align-self: center; font-style: normal; font-size: 1.25rem; line-height: 1; color: var(--texto-suave); transition: transform .2s; }
+.seletor-letras[aria-expanded="true"] .seta { transform: rotate(180deg); }
+.lista-letras {
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  z-index: 40; min-width: 190px; padding: 6px;
+  display: grid; gap: 2px;
+  background: #373c59; border: 1px solid var(--linha-borda); border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+}
+.opcao-letras {
+  display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px;
+  border: none; border-radius: 9px; background: transparent; cursor: pointer;
+  font-family: var(--fonte-placar); text-transform: uppercase; color: var(--texto);
+}
+.opcao-letras:hover { background: var(--tecla); }
+.opcao-letras strong { width: 1.4em; font-size: 1.3rem; font-weight: 800; text-align: right; }
+.opcao-letras span { font-size: .9rem; font-weight: 600; letter-spacing: .1em; color: var(--texto-suave); }
+.opcao-letras .marca { margin-left: auto; font-style: normal; font-family: var(--fonte); font-size: .8rem; font-weight: 700; }
+.opcao-letras.atual { background: var(--tecla); box-shadow: inset 0 0 0 1.5px var(--ouro); }
+.opcao-letras.atual strong { color: var(--ouro); }
+.opcao-letras.limpa .marca { color: var(--certa-letra); }
+.opcao-letras.perdida .marca { color: var(--perdeu); }
+.opcao-letras.andando .marca { color: var(--neon); }
