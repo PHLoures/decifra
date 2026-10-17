@@ -101,9 +101,16 @@
     const corpo = comeu ? e.cobra : e.cobra.slice(0, -1);
     const fora = cabeca.x < 0 || cabeca.y < 0 || cabeca.x >= e.cols || cabeca.y >= e.linhas;
     if (fora || corpo.some((p) => mesma(p, cabeca)) || e.muros.some((p) => mesma(p, cabeca))) {
+      // Carência: na primeira vez a cobra só segura um passo no lugar, dando tempo de virar.
+      // Só bate se continuar indo contra o obstáculo no passo seguinte.
+      if (!e.segurando) {
+        e.segurando = true;
+        return { segurou: true };
+      }
       e.vivo = false;
       return { bateu: true };
     }
+    e.segurando = false;
     e.cobra.unshift(cabeca);
     let muro = null;
     if (comeu) {

@@ -77,6 +77,7 @@ test("muros: cada fruta comida cria um bloco longe da cabeça, e bater nele perd
   assert.ok(d >= 4);
   e.muros = [{ x: e.cobra[0].x + 1, y: e.cobra[0].y }];
   e.comidas = [{ x: 0, y: 0 }];
+  assert.ok(S.passo(e).segurou);
   assert.ok(S.passo(e).bateu);
 });
 
@@ -90,7 +91,23 @@ test("bater no próprio corpo termina, mas encostar no rabo que está saindo nã
   f.comidas = [{ x: 9, y: 9 }];
   f.cobra = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 6, y: 4 }];
   f.dir = "cima";
+  assert.ok(S.passo(f).segurou);
   assert.ok(S.passo(f).bateu);
+});
+
+test("carência: antes de bater a cobra segura um passo, e virar a tempo salva", () => {
+  const e = S.criar(6, 6);
+  e.comidas = [{ x: 0, y: 5 }];
+  e.cobra = [{ x: 5, y: 2 }, { x: 4, y: 2 }, { x: 3, y: 2 }, { x: 2, y: 2 }];
+  e.dir = "direita";
+  const cabeca = { ...e.cobra[0] };
+  assert.ok(S.passo(e).segurou);
+  assert.deepEqual(e.cobra[0], cabeca);
+  assert.ok(e.vivo);
+  S.virar(e, "baixo");
+  const r = S.passo(e);
+  assert.ok(!r.bateu && e.vivo);
+  assert.deepEqual(e.cobra[0], { x: 5, y: 3 });
 });
 
 test("fruta nunca nasce em cima da cobra nem de um muro", () => {
