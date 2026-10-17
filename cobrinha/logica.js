@@ -25,9 +25,9 @@
     "sem-bordas": { nome: "Sem bordas" },
     muros: { nome: "Muros" },
   };
-  // "bomba": no campo fica uma bombinha; comê-la espalha várias frutas em volta
+  // "bomba": começa com uma bombinha; comê-la espalha muitas frutas, que renascem a cada uma comida
   const QUANTIDADES = [1, 3, 5, "bomba"];
-  const FRUTAS_DA_BOMBA = 6;
+  const FRUTAS_DA_BOMBA = 10;
 
   const mesma = (a, b) => a.x === b.x && a.y === b.y;
   const ocupada = (e, x, y) =>
@@ -131,8 +131,8 @@
       e.bomba = null;
       // Frutas espalhadas em volta de onde a bomba estava
       const perto = [];
-      for (let dy = -3; dy <= 3; dy++) {
-        for (let dx = -3; dx <= 3; dx++) {
+      for (let dy = -4; dy <= 4; dy++) {
+        for (let dx = -4; dx <= 4; dx++) {
           const px = explosao.x + dx;
           const py = explosao.y + dy;
           if ((dx || dy) && px >= 0 && py >= 0 && px < e.cols && py < e.linhas && !ocupada(e, px, py)) perto.push({ x: px, y: py });
@@ -141,17 +141,12 @@
       for (let k = 0; k < FRUTAS_DA_BOMBA && perto.length; k++) {
         e.comidas.push(perto.splice(Math.floor((aleatorio || Math.random)() * perto.length), 1)[0]);
       }
-      if (!e.comidas.length) e.bomba = sortearLivre(e, aleatorio, 4);
     } else if (comeu) {
       e.pontos++;
       e.comidas.splice(qual, 1);
-      if (e.comBomba) {
-        // Comeu a última fruta da explosão: nasce outra bomba
-        if (!e.comidas.length) e.bomba = sortearLivre(e, aleatorio, 4) || sortearLivre(e, aleatorio);
-      } else {
-        const nova = sortearLivre(e, aleatorio, 2) || sortearLivre(e, aleatorio);
-        if (nova) e.comidas.push(nova);
-      }
+      // Cada fruta comida renasce em outro lugar (depois da bomba, o campo segue cheio)
+      const nova = sortearLivre(e, aleatorio, 2) || sortearLivre(e, aleatorio);
+      if (nova) e.comidas.push(nova);
       if (e.modo === "muros") {
         muro = sortearLivre(e, aleatorio, 4);
         if (muro) e.muros.push(muro);

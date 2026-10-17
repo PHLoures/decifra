@@ -1,5 +1,5 @@
 // Deixa o jogo funcionando sem internet. Ao mudar a lista de ARQUIVOS, aumente a VERSAO.
-const VERSAO = "v28";
+const VERSAO = "v29";
 const CACHE = `decifra-${VERSAO}`;
 const ARQUIVOS = [
   "./",

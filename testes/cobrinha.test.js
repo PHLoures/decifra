@@ -121,7 +121,7 @@ test("fruta nunca nasce em cima da cobra nem de um muro", () => {
   }
 });
 
-test("bomba: comer espalha frutas em volta e, comidas todas, nasce outra bomba", () => {
+test("bomba: explode em muitas frutas, que renascem a cada uma comida (sem outra bomba)", () => {
   const e = S.criar(17, 15, { frutas: "bomba" });
   assert.equal(e.comidas.length, 0);
   assert.ok(e.bomba);
@@ -131,12 +131,12 @@ test("bomba: comer espalha frutas em volta e, comidas todas, nasce outra bomba",
   assert.equal(e.bomba, null);
   assert.equal(e.comidas.length, S.FRUTAS_DA_BOMBA);
   for (const c of e.comidas) {
-    assert.ok(Math.abs(c.x - r.explosao.x) <= 3 && Math.abs(c.y - r.explosao.y) <= 3);
+    assert.ok(Math.abs(c.x - r.explosao.x) <= 4 && Math.abs(c.y - r.explosao.y) <= 4);
     assert.ok(!naCobra(e, c));
   }
-  // Sobrando só a última fruta, logo à frente: comê-la faz nascer outra bomba
-  e.comidas = [{ x: e.cobra[0].x + 1, y: e.cobra[0].y }];
+  // Come uma: a quantidade se mantém e não volta a bomba
+  e.comidas[0] = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
   assert.ok(S.passo(e).comeu);
-  assert.equal(e.comidas.length, 0);
-  assert.ok(e.bomba);
+  assert.equal(e.comidas.length, S.FRUTAS_DA_BOMBA);
+  assert.equal(e.bomba, null);
 });
