@@ -693,12 +693,9 @@
 
     const alvo = estado.pontos;
     const caixa = $("#res-pontos");
-    const porPalavra = 100 * tamanho;
-    const porFicha = 50 * tamanho * n;
     let conta;
     if (sit.venceu) {
-      conta = n > 1 ? `${n} palavras × ${fmt.format(porPalavra)}` : `${fmt.format(porPalavra)} da palavra`;
-      conta += ` + ${plural(sit.restantes, "ficha", "fichas")} × ${fmt.format(porFicha)}`;
+      conta = "";
     } else if (n > 1) {
       const faltaram = respostas.filter((_, b) => sit.resolvidos[b] < 0).map((r) => letrasDe(r).join("").toUpperCase());
       conta = `decifrou ${sit.quantasResolvidas} de ${n} · ${faltaram.length === 1 ? "faltou" : "faltaram"} ${faltaram.join(", ")}`;
@@ -793,13 +790,13 @@
         const rotulo = f.curto.padStart(2, " ");
         const dica = e.dicas.length ? " 💡" : "";
         if (!e.contabilizado) linhas.push(`${rotulo} em jogo`);
-        else if (e.venceu === false || !e.pontos) linhas.push(e.pontos ? `${rotulo} ✕ parcial +${fmt.format(e.pontos)}${dica}` : `${rotulo} ✕`);
-        else linhas.push(`${rotulo} ${"▰".repeat(gastas)}${"▱".repeat(f.fichas - gastas)} +${fmt.format(e.pontos)}${dica}`);
+        else if (e.venceu === false || !e.pontos) linhas.push(`${rotulo} ✕${dica}`);
+        else linhas.push(`${rotulo} ${"▰".repeat(gastas)}${"▱".repeat(f.fichas - gastas)} ✓${dica}`);
       }
       if (linhas.length) blocos.push(`${m.nome.toUpperCase()}\n${linhas.join("\n")}`);
     }
     const endereco = location.origin + location.pathname;
-    return `${NOME.toUpperCase()} · rodada #${String(dia).padStart(3, "0")}\n⚡ ${fmt.format(placarDoDia())} pontos\n\n${blocos.join("\n\n") || "ainda sem jogadas"}\n\n${endereco}`;
+    return `${NOME.toUpperCase()} · rodada #${String(dia).padStart(3, "0")}\n\n${blocos.join("\n\n") || "ainda sem jogadas"}\n\n${endereco}`;
   }
 
   async function compartilhar() {

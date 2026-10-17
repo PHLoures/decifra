@@ -658,3 +658,8 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #dcdbea; 
 .opcao-letras.limpa .marca { color: var(--certa-letra); }
 .opcao-letras.perdida .marca { color: var(--perdeu); }
 .opcao-letras.andando .marca { color: var(--neon); }
+
+/* Fim de fase sem pontuação: só o resultado, as fichas e o tempo */
+#res-pontos, .res-dia { display: none !important; }
+.res-pontos { margin: 12px 0 0; }
+.res-pontos span:empty { display: none; }
