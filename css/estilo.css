@@ -299,8 +299,8 @@ button { font: inherit; color: inherit; }
 }
 .tabuleiros:not([data-n="1"]) .tabuleiro.resolvido { border-color: var(--certa); box-shadow: 0 0 18px var(--certa-brilho), inset 0 0 14px var(--certa-fundo); }
 .linha { display: grid; grid-template-columns: repeat(var(--colunas), var(--peca)); gap: var(--vao); }
-/* Linhas futuras não aparecem: o tabuleiro vai se formando conforme você joga */
-.linha.oculta { visibility: hidden; }
+/* Tentativas que ainda restam: casas apagadas, bem discretas */
+.linha.oculta .peca { background: rgba(19, 33, 74, .4); border-color: rgba(58, 84, 168, .5); border-style: dashed; }
 
 .peca {
   position: relative;
