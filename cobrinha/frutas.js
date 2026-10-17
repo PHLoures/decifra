@@ -208,7 +208,34 @@
     },
   };
 
-  // Desenha uma fruta num canvas pequeno (ícones do placar e do menu)
+  // Bombinha de frutas: bola escura, pavio e faísca piscando (tempo em ms anima a faísca)
+  function desenharBomba(g, r, tempo = 0) {
+    g.fillStyle = "#3b3f55";
+    g.beginPath();
+    g.arc(0, 0.12 * r, 0.72 * r, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#5c6290";
+    g.fillRect(-0.2 * r, -0.72 * r, 0.4 * r, 0.25 * r);
+    brilho(g, -0.28 * r, -0.12 * r, 0.16 * r);
+    g.strokeStyle = "#c9a27a";
+    g.lineWidth = 0.1 * r;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(0, -0.72 * r);
+    g.quadraticCurveTo(0.15 * r, -1.0 * r, 0.42 * r, -0.95 * r);
+    g.stroke();
+    const pisca = 0.75 + 0.25 * Math.sin(tempo / 70);
+    g.fillStyle = "#fbbb84";
+    g.beginPath();
+    g.arc(0.46 * r, -0.96 * r, 0.2 * r * pisca, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#fff1b8";
+    g.beginPath();
+    g.arc(0.46 * r, -0.96 * r, 0.1 * r * pisca, 0, Math.PI * 2);
+    g.fill();
+  }
+
+  // Desenha uma fruta (ou a bomba) num canvas pequeno (ícones do placar e do menu)
   function pintarIcone(canvas, tipo) {
     const dpr = raiz.devicePixelRatio || 1;
     const tam = canvas.clientWidth || canvas.width;
@@ -218,8 +245,9 @@
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, tam, tam);
     g.translate(tam / 2, tam / 2);
-    FRUTAS[tipo].desenhar(g, tam * 0.42);
+    if (tipo === "bomba") desenharBomba(g, tam * 0.4);
+    else FRUTAS[tipo].desenhar(g, tam * 0.42);
   }
 
-  raiz.Frutas = { FRUTAS, pintarIcone };
+  raiz.Frutas = { FRUTAS, pintarIcone, desenharBomba };
 })(typeof self !== "undefined" ? self : this);

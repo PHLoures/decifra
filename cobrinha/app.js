@@ -175,6 +175,10 @@
   }
   const NOMES_DIR = { cima: "para cima", baixo: "para baixo", esquerda: "para a esquerda", direita: "para a direita" };
   function tratarPasso(r, agora) {
+    if (r.explosao) {
+      explosao = { ...r.explosao, em: agora };
+      tocar("resolvido");
+    }
     tela.dataset.direcao = jogo.dir;
     tela.setAttribute("aria-label", `Cobrinha indo ${NOMES_DIR[jogo.dir]}, ${jogo.pontos} ${jogo.pontos === 1 ? "fruta" : "frutas"}`);
     if (r.comeu) {
@@ -304,6 +308,8 @@
     }
     for (const m of jogo.muros) desenharMuro(m, tema);
     for (const c of jogo.comidas) desenharFruta(c);
+    if (jogo.bomba) desenharBombaNoCampo(jogo.bomba);
+    desenharExplosao();
 
     const pontos = trilho(estadoTela === "fim" ? 1 : Math.max(0, Math.min(1, t)));
     const desdeBatida = estadoTela === "fim" && !jogo.venceu ? performance.now() - morteEm : Infinity;
@@ -403,6 +409,42 @@
     ctx.stroke();
   }
 
+  function desenharBombaNoCampo(b) {
+    const agora = performance.now();
+    const escala = 1 + 0.06 * Math.sin(agora / 160);
+    ctx.save();
+    ctx.translate((b.x + 0.5) * casa, (b.y + 0.55) * casa);
+    ctx.scale(escala, escala);
+    F.desenharBomba(ctx, casa * 0.4, agora);
+    ctx.restore();
+  }
+
+  // Estouro da bomba: anel que cresce e faíscas voando para fora
+  let explosao = null;
+  function desenharExplosao() {
+    if (!explosao) return;
+    const k = (performance.now() - explosao.em) / 550;
+    if (k >= 1) { explosao = null; return; }
+    const cx = (explosao.x + 0.5) * casa;
+    const cy = (explosao.y + 0.5) * casa;
+    ctx.save();
+    ctx.globalAlpha = 1 - k;
+    ctx.strokeStyle = "#fbbb84";
+    ctx.lineWidth = casa * 0.18 * (1 - k);
+    ctx.beginPath();
+    ctx.arc(cx, cy, casa * (0.4 + 2.6 * k), 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      const d = casa * (0.5 + 2.8 * k);
+      ctx.fillStyle = i % 2 ? "#fff1b8" : "#f6c177";
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, casa * 0.12 * (1 - k), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function desenharFruta(c) {
     // Respira de leve; logo depois de comer, a fruta nova "nasce" crescendo
     const nasce = Math.min(1, (performance.now() - comeuEm) / 220);
@@ -431,6 +473,7 @@
     return [bola, CORES[v].nome];
   }
   function tileQuantidade(v) {
+    if (v === "bomba") return [iconeFruta("bomba"), "bomba"];
     const caixa = el("span", "com-numero");
     caixa.append(String(v), iconeFruta(rascunho.fruta, 20));
     return [caixa, v === 1 ? "uma" : "juntas"];

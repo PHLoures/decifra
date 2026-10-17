@@ -17,7 +17,7 @@ test("começa no meio, indo para a direita, com a fruta à frente", () => {
 });
 
 test("quantidade de frutas no campo", () => {
-  for (const n of S.QUANTIDADES) {
+  for (const n of S.QUANTIDADES.filter((q) => typeof q === "number")) {
     const e = S.criar(17, 15, { frutas: n });
     assert.equal(e.comidas.length, n);
     assert.equal(new Set(e.comidas.map((c) => `${c.x},${c.y}`)).size, n);
@@ -119,4 +119,24 @@ test("fruta nunca nasce em cima da cobra nem de um muro", () => {
     assert.ok(!naCobra(e, c));
     assert.ok(!e.muros.some((m) => m.x === c.x && m.y === c.y));
   }
+});
+
+test("bomba: comer espalha frutas em volta e, comidas todas, nasce outra bomba", () => {
+  const e = S.criar(17, 15, { frutas: "bomba" });
+  assert.equal(e.comidas.length, 0);
+  assert.ok(e.bomba);
+  e.bomba = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
+  const r = S.passo(e);
+  assert.ok(r.comeu && r.explosao);
+  assert.equal(e.bomba, null);
+  assert.equal(e.comidas.length, S.FRUTAS_DA_BOMBA);
+  for (const c of e.comidas) {
+    assert.ok(Math.abs(c.x - r.explosao.x) <= 3 && Math.abs(c.y - r.explosao.y) <= 3);
+    assert.ok(!naCobra(e, c));
+  }
+  // Sobrando só a última fruta, logo à frente: comê-la faz nascer outra bomba
+  e.comidas = [{ x: e.cobra[0].x + 1, y: e.cobra[0].y }];
+  assert.ok(S.passo(e).comeu);
+  assert.equal(e.comidas.length, 0);
+  assert.ok(e.bomba);
 });
