@@ -9,9 +9,9 @@
   const OPOSTA = { cima: "baixo", baixo: "cima", esquerda: "direita", direita: "esquerda" };
   // Milissegundos por passo
   const VELOCIDADES = {
-    lenta: { nome: "Lenta", ms: 165 },
-    normal: { nome: "Normal", ms: 120 },
-    rapida: { nome: "Rápida", ms: 82 },
+    lenta: { nome: "Lenta", ms: 200 },
+    normal: { nome: "Normal", ms: 150 },
+    rapida: { nome: "Rápida", ms: 105 },
   };
   // Tamanhos do campo, como no Snake do Google (largura × altura, deitado)
   const TAMANHOS = {

@@ -189,8 +189,8 @@
     return true;
   }
 
-  // Virar sem atraso: em vez de esperar o próximo passo, a cobra vira na hora.
-  // No começo de um passo, ele é refeito já virando; no fim, o próximo passo é adiantado.
+  // Virar sem atraso: no começo de um passo, ele é refeito já virando; mais para o fim,
+  // a virada entra no próximo passo (sem adiantar, para a cobra não acelerar).
   function virarJa(dir) {
     const filaVazia = jogo.fila.length === 0;
     if (!S.virar(jogo, dir) || !filaVazia) return;
@@ -204,9 +204,6 @@
       const r = S.passo(jogo);
       ultimoPasso = r;
       tratarPasso(r, agora);
-    } else {
-      acumulado = 0;
-      darPasso(agora);
     }
     desenhar(acumulado / passoMs());
   }
@@ -234,9 +231,17 @@
     requestAnimationFrame(quadro);
   }
 
+  // Batida no estilo do Google: tranco da cabeça, a cobra pisca e só depois vem o fim
+  let morteEm = 0;
+  function animarBatida(agora) {
+    if (estadoTela !== "fim") return;
+    desenhar(1);
+    if (agora - morteEm < 1500) requestAnimationFrame(animarBatida);
+  }
   function terminar() {
     estadoTela = "fim";
-    desenhar(1);
+    morteEm = performance.now();
+    requestAnimationFrame(animarBatida);
     const recordes = lerRecordes();
     const chave = chaveRecorde();
     const antes = (recordes[chave] && recordes[chave].melhor) || 0;
@@ -253,7 +258,7 @@
         `${frutas} · recorde ${recordes[chave].melhor}`,
         "Jogar de novo"
       );
-    }, 450);
+    }, 1500);
   }
 
   function atualizarPlacar() {
@@ -301,16 +306,27 @@
     for (const c of jogo.comidas) desenharFruta(c);
 
     const pontos = trilho(estadoTela === "fim" ? 1 : Math.max(0, Math.min(1, t)));
+    const desdeBatida = estadoTela === "fim" && !jogo.venceu ? performance.now() - morteEm : Infinity;
+    if (desdeBatida < 220) {
+      // Tranco: a cabeça avança um pouco contra o obstáculo e volta
+      const [dx, dy] = S.DIRECOES[jogo.dir];
+      const k = Math.sin((desdeBatida / 220) * Math.PI) * casa * 0.28;
+      pontos[0] = { x: pontos[0].x + dx * k, y: pontos[0].y + dy * k };
+    }
+    // Depois do tranco, pisca três vezes
+    const apagada = desdeBatida >= 220 && desdeBatida < 1200 && Math.floor((desdeBatida - 220) / 160) % 2 === 0;
     const [corpo, borda] = tema.claro ? cor.claro : [cor.corpo, cor.borda];
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+    ctx.globalAlpha = apagada ? 0.25 : 1;
     ctx.strokeStyle = borda;
     ctx.lineWidth = casa * 0.76;
     tracar(pontos);
     ctx.strokeStyle = corpo;
     ctx.lineWidth = casa * 0.62;
     tracar(pontos);
-    desenharOlhos(pontos[0]);
+    desenharOlhos(pontos[0], desdeBatida < Infinity);
+    ctx.globalAlpha = 1;
 
     if (estadoTela === "fim" && !jogo.venceu) {
       ctx.fillStyle = tema.fim;
@@ -331,7 +347,24 @@
     ctx.stroke();
   }
 
-  function desenharOlhos(cabeca) {
+  function desenharOlhos(cabeca, tonta) {
+    if (tonta) {
+      // Olhos em X depois de bater
+      const [dx, dy] = S.DIRECOES[jogo.dir];
+      const lado = { x: -dy, y: dx };
+      ctx.strokeStyle = "#24283e";
+      ctx.lineWidth = casa * 0.07;
+      for (const s of [-1, 1]) {
+        const ox = cabeca.x + dx * casa * 0.1 + lado.x * s * casa * 0.16;
+        const oy = cabeca.y + dy * casa * 0.1 + lado.y * s * casa * 0.16;
+        const d = casa * 0.08;
+        ctx.beginPath();
+        ctx.moveTo(ox - d, oy - d); ctx.lineTo(ox + d, oy + d);
+        ctx.moveTo(ox + d, oy - d); ctx.lineTo(ox - d, oy + d);
+        ctx.stroke();
+      }
+      return;
+    }
     const [dx, dy] = S.DIRECOES[jogo.dir];
     const lado = { x: -dy, y: dx };
     for (const s of [-1, 1]) {
