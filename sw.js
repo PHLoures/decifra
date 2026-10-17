@@ -1,5 +1,5 @@
 // Deixa o jogo funcionando sem internet. Ao mudar a lista de ARQUIVOS, aumente a VERSAO.
-const VERSAO = "v9";
+const VERSAO = "v10";
 const CACHE = `decifra-${VERSAO}`;
 const ARQUIVOS = [
   "./",
@@ -46,7 +46,9 @@ self.addEventListener("fetch", (e) => {
         if (guardada) return guardada;
       }
       try {
-        const resp = await fetch(req);
+        // "no-cache": sempre confere com o servidor se o arquivo mudou (o GitHub Pages
+        // manda guardar por 10 min, e sem isso um recarregar comum mostraria a versão antiga)
+        const resp = await fetch(req, fonte ? undefined : { cache: "no-cache" });
         if (resp.ok || resp.type === "opaque") cache.put(req, resp.clone());
         return resp;
       } catch (erro) {
