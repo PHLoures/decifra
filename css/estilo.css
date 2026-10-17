@@ -11,23 +11,23 @@
   --texto-suave: #b4b7d0;
   --texto-apagado: #7d82a3;
 
-  --certa: #9fdcbf;          /* menta: letra no lugar certo */
+  --certa: #7fdcae;          /* menta: letra no lugar certo */
   --certa-texto: #1f3b30;    /* texto escuro sobre a menta */
-  --certa-letra: #a9e3c7;    /* menta para texto sobre o fundo escuro */
-  --certa-fundo: rgba(159, 220, 191, .16);
-  --certa-brilho: rgba(159, 220, 191, .18);
-  --lugar: #f6c9a0;          /* pêssego: letra em outro lugar */
+  --certa-letra: #8fe3ba;    /* menta para texto sobre o fundo escuro */
+  --certa-fundo: rgba(127, 220, 174, .18);
+  --certa-brilho: rgba(127, 220, 174, .3);
+  --lugar: #fbbb84;          /* pêssego: letra em outro lugar */
   --lugar-texto: #4a3018;
-  --lugar-letra: #f8d2b0;
-  --lugar-fundo: rgba(246, 201, 160, .14);
-  --lugar-brilho: rgba(246, 201, 160, .16);
+  --lugar-letra: #fcc79a;
+  --lugar-fundo: rgba(251, 187, 132, .16);
+  --lugar-brilho: rgba(251, 187, 132, .28);
   --errada: #3a3f5a;
-  --perdeu: #f2a7a7;
+  --perdeu: #f59a9a;
 
-  --neon: #a5d4f2;           /* azul-céu: cursor, dica e placar */
-  --neon-brilho: rgba(165, 212, 242, .18);
-  --ouro: #f6c9a0;           /* destaque de botões e avisos */
-  --ouro-fundo: #d9a77c;
+  --neon: #8ccbf5;           /* azul-céu: cursor, dica e placar */
+  --neon-brilho: rgba(140, 203, 245, .26);
+  --ouro: #fbbb84;           /* destaque de botões e avisos */
+  --ouro-fundo: #d9955e;
 
   --peca: 56px;
   --vao: 6px;
