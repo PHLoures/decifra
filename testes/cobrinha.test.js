@@ -130,9 +130,11 @@ test("bomba: explode em muitas frutas, que renascem a cada uma comida (sem outra
   assert.ok(r.comeu && r.explosao);
   assert.equal(e.bomba, null);
   assert.equal(e.comidas.length, S.frutasDaBomba(17, 15));
-  for (const c of e.comidas) {
-        assert.ok(!naCobra(e, c));
-  }
+  for (const c of e.comidas) assert.ok(!naCobra(e, c));
+  // Espalhadas pelo campo, não amontoadas num quadrado em volta da bomba
+  const xs = e.comidas.map((c) => c.x);
+  const ys = e.comidas.map((c) => c.y);
+  assert.ok(Math.max(...xs) - Math.min(...xs) > 8 && Math.max(...ys) - Math.min(...ys) > 7);
   // Come uma: a quantidade se mantém e não volta a bomba
   e.comidas[0] = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
   assert.ok(S.passo(e).comeu);

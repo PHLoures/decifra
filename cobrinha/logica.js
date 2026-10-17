@@ -131,22 +131,10 @@
       e.pontos++;
       explosao = { ...e.bomba };
       e.bomba = null;
-      // Frutas espalhadas em volta de onde a bomba estava
-      const perto = [];
-      for (let dy = -7; dy <= 7; dy++) {
-        for (let dx = -7; dx <= 7; dx++) {
-          const px = explosao.x + dx;
-          const py = explosao.y + dy;
-          if ((dx || dy) && px >= 0 && py >= 0 && px < e.cols && py < e.linhas && !ocupada(e, px, py)) perto.push({ x: px, y: py });
-        }
-      }
+      // As frutas da explosão caem espalhadas pelo campo inteiro (longe da cabeça)
       const quantas = frutasDaBomba(e.cols, e.linhas);
-      for (let k = 0; k < quantas && perto.length; k++) {
-        e.comidas.push(perto.splice(Math.floor((aleatorio || Math.random)() * perto.length), 1)[0]);
-      }
-      // Se não couber tudo perto, o resto cai em qualquer lugar livre
       while (e.comidas.length < quantas) {
-        const c = sortearLivre(e, aleatorio, 2);
+        const c = sortearLivre(e, aleatorio, 3) || sortearLivre(e, aleatorio);
         if (!c) break;
         e.comidas.push(c);
       }
