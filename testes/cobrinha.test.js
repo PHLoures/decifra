@@ -129,14 +129,13 @@ test("bomba: explode em muitas frutas, que renascem a cada uma comida (sem outra
   const r = S.passo(e);
   assert.ok(r.comeu && r.explosao);
   assert.equal(e.bomba, null);
-  assert.equal(e.comidas.length, S.FRUTAS_DA_BOMBA);
+  assert.equal(e.comidas.length, S.frutasDaBomba(17, 15));
   for (const c of e.comidas) {
-    assert.ok(Math.abs(c.x - r.explosao.x) <= 4 && Math.abs(c.y - r.explosao.y) <= 4);
-    assert.ok(!naCobra(e, c));
+        assert.ok(!naCobra(e, c));
   }
   // Come uma: a quantidade se mantém e não volta a bomba
   e.comidas[0] = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
   assert.ok(S.passo(e).comeu);
-  assert.equal(e.comidas.length, S.FRUTAS_DA_BOMBA);
+  assert.equal(e.comidas.length, S.frutasDaBomba(17, 15));
   assert.equal(e.bomba, null);
 });

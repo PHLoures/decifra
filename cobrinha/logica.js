@@ -27,7 +27,8 @@
   };
   // "bomba": começa com uma bombinha; comê-la espalha muitas frutas, que renascem a cada uma comida
   const QUANTIDADES = [1, 3, 5, "bomba"];
-  const FRUTAS_DA_BOMBA = 10;
+  // A explosão solta um monte de frutas: cerca de 10% do campo (mínimo 12)
+  const frutasDaBomba = (cols, linhas) => Math.max(12, Math.round(cols * linhas * 0.1));
 
   const mesma = (a, b) => a.x === b.x && a.y === b.y;
   const ocupada = (e, x, y) =>
@@ -131,15 +132,22 @@
       e.bomba = null;
       // Frutas espalhadas em volta de onde a bomba estava
       const perto = [];
-      for (let dy = -4; dy <= 4; dy++) {
-        for (let dx = -4; dx <= 4; dx++) {
+      for (let dy = -7; dy <= 7; dy++) {
+        for (let dx = -7; dx <= 7; dx++) {
           const px = explosao.x + dx;
           const py = explosao.y + dy;
           if ((dx || dy) && px >= 0 && py >= 0 && px < e.cols && py < e.linhas && !ocupada(e, px, py)) perto.push({ x: px, y: py });
         }
       }
-      for (let k = 0; k < FRUTAS_DA_BOMBA && perto.length; k++) {
+      const quantas = frutasDaBomba(e.cols, e.linhas);
+      for (let k = 0; k < quantas && perto.length; k++) {
         e.comidas.push(perto.splice(Math.floor((aleatorio || Math.random)() * perto.length), 1)[0]);
+      }
+      // Se não couber tudo perto, o resto cai em qualquer lugar livre
+      while (e.comidas.length < quantas) {
+        const c = sortearLivre(e, aleatorio, 2);
+        if (!c) break;
+        e.comidas.push(c);
       }
     } else if (comeu) {
       e.pontos++;
@@ -161,5 +169,5 @@
     return { comeu, atravessou, muro, explosao };
   }
 
-  return { DIRECOES, OPOSTA, VELOCIDADES, TAMANHOS, MODOS, QUANTIDADES, FRUTAS_DA_BOMBA, criar, virar, passo, sortearLivre };
+  return { DIRECOES, OPOSTA, VELOCIDADES, TAMANHOS, MODOS, QUANTIDADES, frutasDaBomba, criar, virar, passo, sortearLivre };
 });
