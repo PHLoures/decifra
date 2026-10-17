@@ -414,6 +414,8 @@ button { font: inherit; color: inherit; }
 .tecla .partes[data-n="2"] { grid-template-columns: 1fr 1fr; }
 .tecla .partes[data-n="4"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 .teclado[data-layout="colunas"] .tecla .partes[data-n="4"] { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; }
+.teclado[data-layout="linhas"] .tecla .partes { grid-template-columns: 1fr; grid-template-rows: repeat(var(--n, 2), 1fr); }
+.teclado[data-layout="linhas"] .tecla .partes[data-n="4"] { --n: 4; }
 .tecla .partes i.certa { background: var(--certa); opacity: .55; }
 .tecla .partes i.lugar { background: var(--lugar); opacity: .55; }
 .tecla .partes i.errada { background: rgba(6, 11, 28, .75); }
@@ -574,3 +576,18 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
 .por-fase .casa { height: 30px; display: grid; place-items: center; border-radius: 7px; background: rgba(14, 24, 56, .7); border: 1px solid var(--linha-borda); font-size: .72rem; font-weight: 700; color: var(--texto-apagado); }
 .por-fase .casa.ganhou { background: var(--certa-fundo); border-color: var(--certa); color: var(--certa-letra); }
 .por-fase .casa.perdeu { border-color: rgba(248, 113, 113, .5); color: var(--perdeu); }
+
+/* Dueto/Quarteto em tela estreita: cada pixel de altura vai para as peças */
+@media (max-width: 600px) {
+  .apertado .topo { padding-top: 6px; }
+  .apertado .titulo { font-size: 1.7rem; }
+  .apertado .icone { width: 34px; height: 34px; }
+  .apertado .modos { margin-top: 6px; }
+  .apertado .modo { height: 32px; }
+  .apertado .subfaixa { height: 46px; padding-top: 4px; }
+  .apertado .fase { height: 38px; }
+  .apertado .painel { padding-top: 2px; }
+  .apertado .area { padding-top: 8px; padding-bottom: 2px; }
+  .apertado .teclado { gap: 5px; padding-top: 6px; padding-bottom: 8px; }
+  .apertado .tecla { height: clamp(40px, 6dvh, 48px); }
+}

@@ -116,6 +116,8 @@
     limparAviso();
     $("#chip").textContent = `rodada #${String(dia).padStart(3, "0")}`;
     document.title = `${NOME} · ${info.nome}`;
+    // Dueto/Quarteto no celular: topo e teclado mais compactos para sobrar altura aos tabuleiros
+    document.body.classList.toggle("apertado", info.palavras > 1);
     desenharFases();
     desenharPainel();
     montarTabuleiros();
@@ -247,49 +249,49 @@
     if (!info) return;
     const area = $("#area");
     const n = info.palavras;
-    const vao = n === 4 ? 3 : n === 2 || tamanho >= 8 ? 4 : 6;
     const estilo = getComputedStyle(area);
     const largura = area.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
     const altura = area.clientHeight - parseFloat(estilo.paddingTop) - parseFloat(estilo.paddingBottom) - 4;
-    // Dueto/Quarteto: cada palavra num painel próprio, bem separado dos outros
     const largo = largura >= 600;
-    const gapTab = n > 1 ? (largo ? 28 : 14) : 0;
-    const padTab = n > 1 ? (largo ? 12 : 6) : 0;
 
-    // Tamanho da peça para uma disposição; "linhasDe" diz quantas linhas cada tabuleiro ocupa
-    const medir = (colunas, fileiras, linhasDe) => {
-      let linhas = 0;
-      for (let f = 0; f < fileiras; f++) {
-        let maior = 1;
-        for (let c = 0; c < colunas; c++) maior = Math.max(maior, linhasDe(f * colunas + c));
-        linhas += maior;
-      }
+    // Espaçamentos: normais, ou mais justos quando as peças ficariam pequenas
+    const espacos = (justo) => ({
+      vao: justo ? 2 : n === 4 ? 3 : n === 2 || tamanho >= 8 ? 4 : 6,
+      gapTab: n > 1 ? (justo ? 8 : largo ? 28 : 14) : 0,
+      padTab: n > 1 ? (justo ? 4 : largo ? 12 : 6) : 0,
+    });
+    // Tamanho da peça numa disposição (colunas × fileiras), com todas as linhas reservadas
+    const medir = (colunas, { vao, gapTab, padTab }) => {
+      const fileiras = n / colunas;
+      const linhas = fileiras * info.fichas;
       const porLargura = (largura - (colunas - 1) * gapTab - colunas * 2 * padTab - colunas * (tamanho - 1) * vao) / (colunas * tamanho);
       const porAltura = (altura - (fileiras - 1) * gapTab - fileiras * 2 * padTab - (linhas - fileiras) * vao) / linhas;
       return Math.min(porLargura, porAltura, 58);
     };
 
-    // Quarteto: as 4 palavras lado a lado, cada uma na sua coluna; em tela estreita
-    // (onde 4 colunas deixariam as peças minúsculas) fica 2 em cima e 2 embaixo.
-    // A escolha olha o pior caso (todas as fichas usadas), para não trocar no meio do jogo.
-    let colunas = n === 1 ? 1 : 2;
-    if (n === 4) {
-      const cheio = () => info.fichas;
-      const emColunas = medir(4, 1, cheio);
-      colunas = emColunas >= 22 || emColunas >= medir(2, 2, cheio) ? 4 : 2;
+    // Testa as disposições possíveis e fica com a que dá as maiores peças
+    // (Dueto: lado a lado ou empilhado; Quarteto: 4 colunas, 2×2 ou empilhado).
+    // Em empate, prefere mais colunas.
+    const opcoes = { 1: [1], 2: [2, 1], 4: [4, 2, 1] }[n];
+    let melhor = null;
+    for (const justo of [false, true]) {
+      const e = espacos(justo);
+      for (const colunas of opcoes) {
+        const peca = medir(colunas, e);
+        if (!melhor || peca > melhor.peca + 0.5) melhor = { peca, colunas, ...e };
+      }
+      // Só aperta os espaços se as peças ficariam pequenas
+      if (melhor.peca >= 26) break;
     }
-    const fileiras = n / colunas;
-
-    // Espaço reservado para todas as linhas: as que faltam aparecem tracejadas
-    const peca = Math.max(12, Math.floor(medir(colunas, fileiras, () => info.fichas)));
+    const peca = Math.max(12, Math.floor(melhor.peca));
     const raiz = $("#tabuleiros");
     raiz.style.setProperty("--peca", `${peca}px`);
-    raiz.style.setProperty("--vao", `${vao}px`);
-    raiz.style.setProperty("--cols", colunas);
-    raiz.style.setProperty("--gap-tab", `${gapTab}px`);
-    raiz.style.setProperty("--pad-tab", `${padTab}px`);
+    raiz.style.setProperty("--vao", `${melhor.vao}px`);
+    raiz.style.setProperty("--cols", melhor.colunas);
+    raiz.style.setProperty("--gap-tab", `${melhor.gapTab}px`);
+    raiz.style.setProperty("--pad-tab", `${melhor.padTab}px`);
     // As teclas divididas seguem a mesma disposição dos tabuleiros
-    $("#teclado").dataset.layout = colunas === 4 ? "colunas" : "grade";
+    $("#teclado").dataset.layout = melhor.colunas === 4 ? "colunas" : melhor.colunas === 1 ? "linhas" : "grade";
     // Peças muito pequenas: sem as marquinhas, só a cor
     raiz.classList.toggle("miuda", peca < 26);
   }
