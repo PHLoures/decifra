@@ -18,6 +18,7 @@
     pequeno: { nome: "Pequeno", nivel: "fácil", cols: 10, linhas: 9 },
     medio: { nome: "Médio", nivel: "médio", cols: 17, linhas: 15 },
     grande: { nome: "Grande", nivel: "difícil", cols: 24, linhas: 21 },
+    gigante: { nome: "Gigante", nivel: "impossível", cols: 40, linhas: 34 },
   };
   // classico: bater na borda perde · sem-bordas: atravessa para o outro lado · muros: cada fruta cria um bloco
   const MODOS = {

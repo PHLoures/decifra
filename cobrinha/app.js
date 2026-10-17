@@ -114,7 +114,7 @@
     const area = $("#area");
     const largura = area.clientWidth - 24 - 14;
     const altura = area.clientHeight - 20 - 14;
-    casa = Math.max(8, Math.floor(Math.min(largura / jogo.cols, altura / jogo.linhas, 44)));
+    casa = Math.max(6, Math.floor(Math.min(largura / jogo.cols, altura / jogo.linhas, 44)));
     const dpr = window.devicePixelRatio || 1;
     tela.style.width = `${casa * jogo.cols}px`;
     tela.style.height = `${casa * jogo.linhas}px`;
@@ -460,7 +460,7 @@
 
   function tileTamanho(v) {
     const t = S.TAMANHOS[v];
-    const n = { pequeno: 3, medio: 4, grande: 6 }[v];
+    const n = { pequeno: 3, medio: 4, grande: 6, gigante: 9 }[v];
     const grade = el("span", "grade-mini");
     grade.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
     for (let i = 0; i < n * n; i++) grade.appendChild(el("i"));
