@@ -100,7 +100,8 @@
     return f ? f.id : null;
   }
   // Sem fase na URL: a primeira que ainda não terminou hoje
-  const faseInicial = () => faseDaUrl() || IDS.find((id) => ["nova", "andando"].includes(statusFase(id))) || "5";
+  // Quem entra no site cai direto no Clássico de 5 letras (o modo principal)
+  const faseInicial = () => faseDaUrl() || "5";
 
   async function iniciar(id) {
     const desta = ++partida;
@@ -212,7 +213,6 @@
     moedas.innerHTML = "";
     for (let i = 0; i < total; i++) moedas.appendChild(el("i", i < total - gastas ? "moeda" : "moeda gasta"));
     moedas.setAttribute("aria-label", `${total - gastas} de ${total} fichas`);
-    $("#placar").textContent = led(placarDoDia());
   }
 
   /* ---------- Tabuleiros ---------- */

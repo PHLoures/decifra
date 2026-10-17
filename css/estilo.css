@@ -602,3 +602,23 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #dcdbea; 
   border: 1px solid rgba(165, 212, 242, .5);
   white-space: nowrap;
 }
+
+/* Abas de tamanho da palavra (4 a 10), no mesmo estilo do seletor de modo */
+.fases {
+  width: calc(100% - 24px);
+  max-width: 516px;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(36, 40, 62, .8);
+  border: 1px solid var(--linha-borda);
+  border-radius: 14px;
+}
+.fase { height: 38px; max-width: none; border: none; border-radius: 10px; background: transparent; }
+.fase strong { font-size: 1.25rem; color: var(--texto-suave); }
+.fase:hover strong { color: var(--texto); }
+.fase.atual { transform: none; background: var(--tecla); box-shadow: inset 0 0 0 1.5px var(--ouro); }
+.fase.atual strong { color: var(--ouro); }
+.fase.limpa, .fase.perdida, .fase.andando { background: transparent; }
+.fase.limpa.atual, .fase.perdida.atual, .fase.andando.atual { background: var(--tecla); }
+.subfaixa { justify-content: center; }
+.subfaixa .fases { margin: 0 auto; }
