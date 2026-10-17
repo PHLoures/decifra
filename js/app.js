@@ -177,12 +177,16 @@
       icone.setAttribute("aria-hidden", "true");
       icone.innerHTML = ICONES[m.id];
       b.append(icone, el("span", "", m.nome));
-      if (feitas || andando) b.appendChild(el("em", "selo", `${feitas}/${fases.length}`));
       b.addEventListener("click", () => {
         if (!atual) location.hash = `#${entradaDo(m.id)}`;
       });
       modos.appendChild(b);
     }
+
+    // Progresso da rodada inteira, ao lado do nome do jogo
+    const feitasNoDia = L.FASES.filter((f) => terminada(f.id)).length;
+    $("#progresso").textContent = `${feitasNoDia}/${L.FASES.length}`;
+    $("#progresso").title = `${feitasNoDia} de ${L.FASES.length} fases jogadas hoje`;
 
     // Linha de baixo: as fases de 4 a 10 letras do modo atual
     const fases = $("#fases");

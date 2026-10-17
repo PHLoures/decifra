@@ -591,3 +591,21 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
   .apertado .teclado { gap: 5px; padding-top: 6px; padding-bottom: 8px; }
   .apertado .tecla { height: clamp(40px, 6dvh, 48px); }
 }
+
+/* Progresso da rodada ao lado do nome */
+.titulo-linha { position: relative; display: flex; align-items: center; justify-content: center; }
+.progresso {
+  position: absolute;
+  left: 100%;
+  margin-left: 8px;
+  font-family: var(--fonte);
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 9px;
+  color: var(--neon);
+  background: rgba(34, 211, 238, .08);
+  border: 1px solid rgba(34, 211, 238, .5);
+  white-space: nowrap;
+}
