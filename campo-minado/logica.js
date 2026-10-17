@@ -10,6 +10,7 @@
     facil: { nome: "Fácil", cols: 10, linhas: 8, minas: 10 },
     medio: { nome: "Médio", cols: 18, linhas: 14, minas: 40 },
     dificil: { nome: "Difícil", cols: 24, linhas: 20, minas: 99 },
+    impossivel: { nome: "Impossível", cols: 36, linhas: 30, minas: 250 },
   };
 
   function criar(cols, linhas, minas) {

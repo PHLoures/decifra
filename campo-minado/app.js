@@ -72,7 +72,7 @@
     const largura = area.clientWidth - 24 - 12;
     const altura = area.clientHeight - 24 - 12;
     const tam = Math.floor(Math.min(largura / campo.cols, altura / campo.linhas, 48));
-    $("#campo").style.setProperty("--casa", `${Math.max(12, tam)}px`);
+    $("#campo").style.setProperty("--casa", `${Math.max(8, tam)}px`);
   }
 
   function desenharCasa(i, extra = "") {
