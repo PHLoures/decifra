@@ -1,14 +1,28 @@
-// Rode com: node --test testes/
+// Rode com: node --test testes/*.test.js
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const S = require("../cobrinha/logica.js");
 
-test("começa no meio, indo para a direita, com a comida à frente", () => {
-  const e = S.criar(15, 17);
-  assert.equal(e.cobra.length, 4);
-  assert.equal(e.dir, "direita");
-  assert.equal(e.comida.y, e.cobra[0].y);
-  assert.ok(e.comida.x > e.cobra[0].x);
+const naCobra = (e, c) => e.cobra.some((p) => p.x === c.x && p.y === c.y);
+
+test("começa no meio, indo para a direita, com a fruta à frente", () => {
+  for (const t of Object.values(S.TAMANHOS)) {
+    const e = S.criar(t.cols, t.linhas);
+    assert.equal(e.cobra.length, 4);
+    assert.equal(e.dir, "direita");
+    assert.equal(e.comidas[0].y, e.cobra[0].y);
+    assert.ok(e.comidas[0].x > e.cobra[0].x, `${t.nome}: fruta deve estar à frente`);
+    assert.ok(e.comidas[0].x < t.cols);
+  }
+});
+
+test("quantidade de frutas no campo", () => {
+  for (const n of S.QUANTIDADES) {
+    const e = S.criar(17, 15, { frutas: n });
+    assert.equal(e.comidas.length, n);
+    assert.equal(new Set(e.comidas.map((c) => `${c.x},${c.y}`)).size, n);
+    assert.ok(e.comidas.every((c) => !naCobra(e, c)));
+  }
 });
 
 test("anda um passo e não deixa dar meia-volta", () => {
@@ -18,51 +32,74 @@ test("anda um passo e não deixa dar meia-volta", () => {
   assert.equal(e.cobra[0].x, x + 1);
   assert.equal(S.virar(e, "esquerda"), false);
   assert.equal(S.virar(e, "cima"), true);
-  // Depois de "cima", "baixo" seria meia-volta
   assert.equal(S.virar(e, "baixo"), false);
   S.passo(e);
   assert.equal(e.dir, "cima");
 });
 
-test("comer faz crescer e pontuar", () => {
-  const e = S.criar(15, 17);
+test("comer faz crescer, pontuar e repõe a fruta", () => {
+  const e = S.criar(15, 17, { frutas: 3 });
   const tamanho = e.cobra.length;
-  e.comida = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
+  e.comidas[0] = { x: e.cobra[0].x + 1, y: e.cobra[0].y };
   const r = S.passo(e, () => 0);
   assert.ok(r.comeu);
   assert.equal(e.pontos, 1);
   assert.equal(e.cobra.length, tamanho + 1);
-  assert.ok(!e.cobra.some((p) => p.x === e.comida.x && p.y === e.comida.y));
+  assert.equal(e.comidas.length, 3);
+  assert.ok(e.comidas.every((c) => !naCobra(e, c)));
 });
 
-test("bater na parede termina o jogo", () => {
+test("clássico: bater na parede termina o jogo", () => {
   const e = S.criar(6, 6);
-  e.comida = { x: 0, y: 0 };
+  e.comidas = [{ x: 0, y: 0 }];
   let r = {};
   for (let i = 0; i < 10 && e.vivo; i++) r = S.passo(e);
   assert.ok(r.bateu);
-  assert.equal(e.vivo, false);
+});
+
+test("sem bordas: atravessa para o outro lado", () => {
+  const e = S.criar(6, 6, { modo: "sem-bordas" });
+  e.comidas = [{ x: 0, y: 0 }];
+  let atravessou = false;
+  for (let i = 0; i < 4; i++) atravessou = S.passo(e).atravessou || atravessou;
+  assert.ok(e.vivo);
+  assert.ok(atravessou);
+  assert.ok(e.cobra[0].x < 3);
+});
+
+test("muros: cada fruta comida cria um bloco longe da cabeça, e bater nele perde", () => {
+  const e = S.criar(17, 15, { modo: "muros" });
+  e.comidas = [{ x: e.cobra[0].x + 1, y: e.cobra[0].y }];
+  const r = S.passo(e);
+  assert.ok(r.comeu && r.muro);
+  assert.equal(e.muros.length, 1);
+  const d = Math.abs(r.muro.x - e.cobra[0].x) + Math.abs(r.muro.y - e.cobra[0].y);
+  assert.ok(d >= 4);
+  e.muros = [{ x: e.cobra[0].x + 1, y: e.cobra[0].y }];
+  e.comidas = [{ x: 0, y: 0 }];
+  assert.ok(S.passo(e).bateu);
 });
 
 test("bater no próprio corpo termina, mas encostar no rabo que está saindo não", () => {
   const e = S.criar(10, 10);
-  e.comida = { x: 9, y: 9 };
-  // Cobra de 4 fazendo um quadrado: a cabeça entra onde o rabo acabou de sair
+  e.comidas = [{ x: 9, y: 9 }];
   e.cobra = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 4, y: 4 }, { x: 5, y: 4 }];
   e.dir = "cima";
   assert.ok(!S.passo(e).bateu);
-  // Agora com um corpo maior, voltar para dentro dele bate
   const f = S.criar(10, 10);
-  f.comida = { x: 9, y: 9 };
+  f.comidas = [{ x: 9, y: 9 }];
   f.cobra = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 6, y: 4 }];
   f.dir = "cima";
   assert.ok(S.passo(f).bateu);
 });
 
-test("comida nunca nasce em cima da cobra", () => {
+test("fruta nunca nasce em cima da cobra nem de um muro", () => {
   const e = S.criar(5, 5);
+  e.muros = [{ x: 0, y: 0 }, { x: 4, y: 4 }];
+  e.comidas = [];
   for (let i = 0; i < 200; i++) {
-    const c = S.sortearComida(e);
-    assert.ok(!e.cobra.some((p) => p.x === c.x && p.y === c.y));
+    const c = S.sortearLivre(e);
+    assert.ok(!naCobra(e, c));
+    assert.ok(!e.muros.some((m) => m.x === c.x && m.y === c.y));
   }
 });

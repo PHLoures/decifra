@@ -1,92 +1,111 @@
-/* Campo Minado: placar de minas e tempo, campo de casas e modo bandeira */
+/* Campo Minado no estilo do Google: grama quadriculada (fechadas), areia (abertas), sem vão entre as casas */
 :root {
-  --num-1: #8ccbf5; --num-2: #7fdcae; --num-3: #fbbb84; --num-4: #c4b0f5;
-  --num-5: #f59a9a; --num-6: #6fd3d0; --num-7: #eceaf5; --num-8: #b4b7d0;
+  --grama-a: #8fd9b1;
+  --grama-b: #7fceA3;
+  --grama-luz: #a6e3c3;
+  --areia-a: #f3dfc6;
+  --areia-b: #ead3b6;
+  --bandeira: #f0857c;
+  /* Cores clássicas dos números, um tom mais suave */
+  --num-1: #3d7fd6; --num-2: #2f9a5f; --num-3: #d9534f; --num-4: #7b4fc6;
+  --num-5: #d98a1f; --num-6: #1e9a9a; --num-7: #3b3f55; --num-8: #8a8fa3;
   --casa: 32px;
-  --vao-casa: 3px;
 }
 
 .titulo { font-size: clamp(1.7rem, 7.5vw, 2.4rem); }
 
-.placar-minado {
+.barra-minado {
   width: calc(100% - 24px);
   max-width: 516px;
-  margin-top: 10px;
+  margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
 }
-.contador { display: flex; align-items: center; gap: 8px; color: var(--texto-suave); }
-.contador:last-child { justify-content: flex-end; }
-.contador svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.contador strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.6rem; line-height: 1; letter-spacing: .06em; font-variant-numeric: tabular-nums; color: var(--neon); }
-.botao-novo { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: grid; place-items: center; background: var(--ouro); color: var(--noite); box-shadow: inset 0 -3px 0 var(--ouro-fundo); }
-.botao-novo svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.botao-novo:active { transform: translateY(2px) rotate(-30deg); }
+.seletor-nivel { position: relative; justify-self: start; }
+.seletor-nivel .seletor-letras span { font-size: 1.05rem; }
+.seletor-nivel .lista-letras { left: 0; transform: none; min-width: 210px; }
+.contador { display: flex; align-items: center; gap: 6px; }
+.contador svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.contador.bandeiras { color: var(--bandeira); }
+.contador.bandeiras .pano { fill: var(--bandeira); }
+.contador.relogio { color: var(--ouro); }
+.contador strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.6rem; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; color: var(--texto); min-width: 2.2em; }
 
 .area-minado { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.moldura-minado { position: relative; padding: 6px; border-radius: 14px; background: #5fae87; box-shadow: 0 10px 30px rgba(0, 0, 0, .3); }
 .campo {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--casa));
-  gap: var(--vao-casa);
-  padding: 8px;
-  border-radius: 16px;
-  background: rgba(36, 40, 62, .7);
-  border: 1px solid var(--linha-borda);
+  border-radius: 8px;
+  overflow: hidden;
   touch-action: manipulation;
   -webkit-touch-callout: none;
 }
 .casa {
+  position: relative;
   width: var(--casa);
   height: var(--casa);
   padding: 0;
   border: none;
-  border-radius: calc(var(--casa) * .2);
-  background: var(--tecla);
-  box-shadow: inset 0 calc(var(--casa) * -.1) 0 var(--tecla-fundo);
+  border-radius: 0;
+  background: var(--grama-a);
   display: grid;
   place-items: center;
   font-family: var(--fonte-placar);
   font-weight: 800;
-  font-size: calc(var(--casa) * .62);
+  font-size: calc(var(--casa) * .66);
   line-height: 1;
   cursor: pointer;
   user-select: none;
-  transition: background .12s;
 }
-.casa:hover { background: #474c6e; }
-.casa.aberta { background: rgba(30, 33, 52, .75); box-shadow: none; cursor: default; animation: abre-casa .18s ease-out; }
-@keyframes abre-casa { from { transform: scale(.82); } }
-.casa svg { width: 70%; height: 70%; }
-.casa .bandeira { fill: var(--ouro); stroke: var(--ouro-fundo); stroke-width: 1.5; stroke-linejoin: round; }
-.casa .mina { fill: var(--noite); stroke: var(--noite); stroke-width: 2; stroke-linecap: round; }
-.casa.mina-aberta { background: #e9a3a3; }
-.casa.explodiu { background: var(--perdeu); animation: explode .45s ease-out; }
-.casa.bandeira-errada { background: rgba(245, 154, 154, .25); }
-@keyframes explode { 30% { transform: scale(1.3); } }
+.casa.b { background: var(--grama-b); }
+.casa:not(.aberta):hover { background: var(--grama-luz); }
+.casa.aberta { background: var(--areia-a); cursor: default; }
+.casa.aberta.b { background: var(--areia-b); }
+.casa svg { width: 72%; height: 72%; pointer-events: none; }
+.casa .haste { stroke: #3b3f55; stroke-width: 2; stroke-linecap: round; fill: none; }
+.casa .pano { fill: var(--bandeira); }
+.casa.plantando svg { animation: finca .25s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes finca { from { transform: translateY(-30%) scale(.6); opacity: 0; } }
+.casa.bandeira-errada::after { content: "✕"; position: absolute; font-family: var(--fonte); font-size: calc(var(--casa) * .7); color: #3b3f55; }
 .n1 { color: var(--num-1); } .n2 { color: var(--num-2); } .n3 { color: var(--num-3); } .n4 { color: var(--num-4); }
 .n5 { color: var(--num-5); } .n6 { color: var(--num-6); } .n7 { color: var(--num-7); } .n8 { color: var(--num-8); }
-.campo.vitoria .casa:not(.aberta) { background: var(--certa-fundo); box-shadow: inset 0 0 0 1.5px var(--certa); }
+
+/* Mina estourada: casa pintada de uma cor e a bolinha escura no meio */
+.casa.mina { background: var(--cor-mina, #f0857c) !important; animation: estoura .3s cubic-bezier(.2, 1.6, .4, 1); }
+.casa.mina::before { content: ""; width: 42%; height: 42%; border-radius: 50%; background: rgba(0, 0, 0, .45); }
+@keyframes estoura { from { transform: scale(.4); } }
+
+/* Terrinha que voa quando a casa é cavada */
+.particulas { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.particulas i { position: absolute; width: 6px; height: 6px; border-radius: 2px; }
 
 .rodape-minado { width: 100%; max-width: 540px; padding: 4px 14px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.alternar-bandeira {
+.ferramenta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 26px; background: rgba(36, 40, 62, .85); border: 1px solid var(--linha-borda); }
+.opcao-ferramenta {
   display: flex; align-items: center; gap: 8px;
-  height: 46px; padding: 0 20px;
-  border: 1.5px solid var(--linha-borda); border-radius: 23px;
-  background: rgba(36, 40, 62, .8); color: var(--texto-suave); cursor: pointer;
+  height: 42px; padding: 0 18px;
+  border: none; border-radius: 22px; background: transparent; color: var(--texto-suave); cursor: pointer;
   font-family: var(--fonte-placar); font-weight: 800; font-size: 1rem; letter-spacing: .1em; text-transform: uppercase;
-  transition: background .15s, color .15s, border-color .15s;
 }
-.alternar-bandeira svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
-.alternar-bandeira[aria-pressed="true"] { background: var(--ouro); color: var(--noite); border-color: var(--ouro); }
-.alternar-bandeira[aria-pressed="true"] svg { fill: var(--noite); }
-.dica-controle { margin: 0; font-size: .78rem; color: var(--texto-apagado); }
+.opcao-ferramenta svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.opcao-ferramenta[aria-pressed="true"] { background: var(--ouro); color: var(--noite); }
+#btn-bandeira[aria-pressed="true"] { background: var(--bandeira); color: #fff; }
+#btn-bandeira[aria-pressed="true"] svg path:last-child { fill: #fff; }
+.dica-controle { margin: 0; font-size: .76rem; color: var(--texto-apagado); text-align: center; }
 
-.tempo-final { margin: 6px 0 2px !important; font-family: var(--fonte-placar); font-weight: 800; font-size: 3.4rem !important; line-height: 1; color: var(--certa-letra) !important; font-variant-numeric: tabular-nums; }
-.derrota .tempo-final { color: var(--texto-apagado) !important; }
+/* Fim de jogo: tempo e melhor tempo lado a lado, como no Google */
+.tempos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 10px; }
+.tempos > div { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px; border-radius: 14px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }
+.tempos svg { width: 26px; height: 26px; fill: none; stroke: var(--ouro); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tempos strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--texto); }
+.tempos span { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-suave); }
 .recordes-minado { display: grid; gap: 8px; }
 .recordes-minado > div { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 12px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }
 .recordes-minado strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.2rem; letter-spacing: .06em; text-transform: uppercase; }
 .recordes-minado span { font-size: .8rem; color: var(--texto-suave); text-align: right; }
 .recordes-minado em { font-style: normal; font-family: var(--fonte-placar); font-weight: 800; font-size: 1.4rem; color: var(--ouro); min-width: 3.2em; text-align: right; }
+.seletor-nivel .opcao-letras strong { width: auto; text-align: left; font-size: 1.15rem; }
+.seletor-nivel .opcao-letras span { margin-left: auto; font-family: var(--fonte); font-size: .78rem; letter-spacing: 0; text-transform: none; }

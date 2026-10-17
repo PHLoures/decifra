@@ -7,8 +7,8 @@ Jogo de palavras em português com cara de placar de estádio, alma de fliperama
 O botão de controle no topo abre o menu com os outros jogos, todos no mesmo visual:
 
 - **Conexões** (`conexoes/`): um desafio por dia com 16 palavras para separar em 4 grupos escondidos. São 4 erros permitidos e os grupos vão do fácil (amarelo) à pegadinha (roxo). Os desafios ficam em `conexoes/desafios.js`; para acrescentar, siga a regra comentada no topo do arquivo, que garante uma solução única.
-- **Campo Minado** (`campo-minado/`): três dificuldades. Tocar abre, segurar (ou clique direito, ou modo bandeira) marca. O primeiro toque nunca é mina, e tem cronômetro e melhor tempo por nível.
-- **Cobrinha** (`cobrinha/`): no estilo do Snake do Google, com movimento suave, setas, W A S D, deslizar o dedo ou botões. Três velocidades, cada uma com o seu recorde.
+- **Campo Minado** (`campo-minado/`): no estilo do Campo Minado do Google, com Fácil (10×8, 10 minas), Médio (18×14, 40) e Difícil (24×20, 99), grama quadriculada e terrinha voando ao cavar. Tocar cava; segurar, clique direito ou a ferramenta **bandeira** marca. O primeiro toque nunca é mina, as minas estouram uma a uma quando você perde, e tem cronômetro e melhor tempo por nível.
+- **Cobrinha** (`cobrinha/`): no estilo do Snake do Google, com movimento suave, setas, W A S D, deslizar o dedo ou botões. Menu de opções com tamanho do campo (pequeno/fácil, médio, grande/difícil), velocidade, modo (clássico, sem bordas, muros), quantas frutas aparecem, a fruta, a cor da cobra e o tema. O recorde vale para cada combinação de tamanho, velocidade e modo.
 
 ## Como funciona o Decifra
 

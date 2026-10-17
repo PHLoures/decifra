@@ -1,16 +1,26 @@
-/* Cobrinha: campo quadriculado em canvas, placar e botões de direção */
+/* Cobrinha: campo quadriculado em canvas, placar, menu de opções e botões de direção */
 .placar-cobrinha {
   width: calc(100% - 24px);
   max-width: 516px;
   margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
 }
 .contador { display: flex; align-items: center; gap: 8px; color: var(--certa); }
-.contador.recorde { color: var(--ouro); }
+.contador.recorde { justify-content: flex-end; color: var(--ouro); }
 .contador svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .contador strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--texto); }
+.emoji-fruta { font-size: 1.3rem; line-height: 1; }
+.botao-opcoes {
+  display: flex; align-items: center; gap: 6px;
+  height: 38px; padding: 0 14px;
+  border: 1px solid var(--linha-borda); border-radius: 19px;
+  background: rgba(36, 40, 62, .8); color: var(--texto); cursor: pointer;
+  font-family: var(--fonte-placar); font-weight: 800; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase;
+}
+.botao-opcoes:hover { border-color: var(--ouro); }
+.botao-opcoes svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
 .area-cobrinha { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 10px 12px; }
 .moldura {
@@ -33,14 +43,13 @@
   gap: 10px;
   padding: 20px;
   text-align: center;
-  background: rgba(43, 47, 69, .82);
+  background: rgba(43, 47, 69, .84);
   backdrop-filter: blur(2px);
-  transition: opacity .2s;
 }
 .sobreposicao[hidden] { display: none; }
 .sobreposicao strong { font-family: var(--fonte-placar); font-style: italic; font-weight: 800; font-size: 2.4rem; line-height: 1; text-transform: uppercase; color: var(--ouro); }
 .sobreposicao span { font-size: .9rem; color: var(--texto-suave); max-width: 260px; line-height: 1.4; }
-.sobreposicao .botao { min-width: 160px; margin-top: 4px; }
+.sobreposicao .botao { min-width: 170px; }
 
 .controles {
   display: grid;
@@ -58,12 +67,54 @@
 .seta-dir[data-dir="direita"] { grid-column: 3; grid-row: 2; }
 .seta-dir[data-dir="baixo"] { grid-column: 2; grid-row: 3; }
 
+/* Menu de opções no estilo do Snake do Google: uma fileira por escolha */
+.opcoes-cobrinha { width: min(480px, calc(100vw - 20px)); max-height: calc(100dvh - 16px); padding: 16px 14px 0; }
+.opcoes-cobrinha h2 { margin-bottom: 6px; font-size: 1.7rem; }
+.grupos-opcoes { display: grid; gap: 4px; }
+.grupo-opcao { display: grid; gap: 5px; padding: 6px 2px; border-bottom: 1px solid rgba(74, 80, 114, .5); }
+.grupo-opcao > span { font-family: var(--fonte-placar); font-weight: 600; font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; color: var(--texto-suave); }
+.fileira-opcoes { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.fileira-opcoes::-webkit-scrollbar { display: none; }
+.opcao-tile {
+  flex: 1 0 auto;
+  min-width: 48px;
+  height: 46px;
+  padding: 4px 8px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: var(--tecla);
+  color: var(--texto);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: border-color .12s, background .12s, transform .12s;
+}
+.opcao-tile:hover { transform: translateY(-1px); }
+.opcao-tile[aria-pressed="true"] { border-color: var(--ouro); background: #4a4f6e; box-shadow: 0 0 0 2px rgba(251, 187, 132, .18); }
+.opcao-tile .grande { font-size: 1.45rem; line-height: 1; }
+.opcao-tile small { font-family: var(--fonte-placar); font-weight: 800; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-suave); line-height: 1; }
+.opcao-tile[aria-pressed="true"] small { color: var(--ouro); }
+.opcao-tile .bola { width: 24px; height: 24px; border-radius: 50%; }
+.opcao-tile .grade-mini { display: grid; gap: 1px; width: 26px; height: 22px; }
+.grade-mini i { background: #8a90b8; border-radius: 1px; }
+/* Botões sempre visíveis no rodapé da janela, mesmo rolando as opções */
+.acoes-opcoes { position: sticky; bottom: 0; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; margin: 10px -14px 0; padding: 10px 14px 14px; background: #2f3450; border-top: 1px solid rgba(74, 80, 114, .6); }
+.acoes-opcoes .botao { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px 13px; font-size: clamp(.9rem, 3.8vw, 1.1rem); }
+.acoes-opcoes svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+#btn-aplicar svg { fill: currentColor; }
+
 .recordes-minado { display: grid; gap: 8px; }
-.recordes-minado > div { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 12px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }
-.recordes-minado strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.2rem; letter-spacing: .06em; text-transform: uppercase; }
-.recordes-minado span { font-size: .8rem; color: var(--texto-suave); text-align: right; }
-.recordes-minado em { font-style: normal; font-family: var(--fonte-placar); font-weight: 800; font-size: 1.4rem; color: var(--ouro); min-width: 2.4em; text-align: right; }
+.recordes-minado > div { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 10px 14px; border-radius: 12px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }
+.recordes-minado strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.05rem; letter-spacing: .04em; text-transform: uppercase; }
+.recordes-minado span { display: block; font-size: .75rem; color: var(--texto-suave); }
+.recordes-minado em { font-style: normal; font-family: var(--fonte-placar); font-weight: 800; font-size: 1.5rem; color: var(--ouro); text-align: right; }
+.recordes-minado .vazio { display: block; text-align: center; color: var(--texto-suave); font-size: .9rem; padding: 10px; }
 
 @media (max-height: 700px) {
   .controles { grid-template-rows: repeat(3, 38px); grid-template-columns: repeat(3, 50px); }
+  .opcao-tile { height: 42px; }
+  .opcao-tile .grande { font-size: 1.25rem; }
 }

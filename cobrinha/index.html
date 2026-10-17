@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cobrinha · Decifra</title>
-<meta name="description" content="Coma as frutas, cresça e não bata em nada. Três velocidades e recorde.">
+<meta name="description" content="Coma as frutas, cresça e não bata em nada. Escolha tamanho do campo, velocidade, modo, fruta, cor e tema.">
 <meta name="theme-color" content="#2b2f45">
 <link rel="icon" href="../icone-d.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icone-180.png">
@@ -23,7 +23,7 @@
   </div>
   <div class="topo-centro">
     <h1 class="titulo">Cobrinha</h1>
-    <span class="chip" id="chip">normal</span>
+    <span class="chip" id="chip">médio · normal</span>
   </div>
   <div class="topo-lado">
     <button class="icone" id="btn-estatisticas" aria-label="Recordes">
@@ -33,17 +33,15 @@
   </div>
 </header>
 
-<nav class="modos" id="velocidades" aria-label="Velocidade">
-  <button class="modo" data-vel="lenta">Lenta</button>
-  <button class="modo" data-vel="normal">Normal</button>
-  <button class="modo" data-vel="rapida">Rápida</button>
-</nav>
-
 <div class="placar-cobrinha">
   <div class="contador" aria-label="Pontos">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="6.5"/><path d="M12 7.5c0-2 1-3.5 3-4"/></svg>
+    <span class="emoji-fruta" id="fruta-placar" aria-hidden="true">🍎</span>
     <strong id="pontos">0</strong>
   </div>
+  <button class="botao-opcoes" id="btn-opcoes">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+    opções
+  </button>
   <div class="contador recorde" aria-label="Recorde">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg>
     <strong id="recorde">0</strong>
@@ -57,6 +55,7 @@
       <strong id="sob-titulo">Cobrinha</strong>
       <span id="sob-texto">deslize ou use as setas para começar</span>
       <button class="botao" id="btn-jogar">Jogar</button>
+      <button class="botao secundario" id="btn-sob-opcoes">Opções</button>
     </div>
   </div>
 </main>
@@ -69,22 +68,40 @@
   <button class="seta-dir" data-dir="baixo" aria-label="Baixo"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
 </div>
 
+<dialog id="dlg-opcoes" class="opcoes-cobrinha" aria-labelledby="opcoes-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="opcoes-titulo" tabindex="-1" autofocus>Opções</h2>
+  <div class="grupos-opcoes" id="grupos-opcoes"></div>
+  <div class="acoes-opcoes">
+    <button class="botao" id="btn-aplicar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>Jogar
+    </button>
+    <button class="botao secundario" id="btn-sortear">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="12" cy="12" r="1.2"/></svg>Sortear
+    </button>
+    <button class="botao secundario" id="btn-redefinir">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h11a5 5 0 0 1 0 10H8M4 9l4-4M4 9l4 4"/></svg>Redefinir
+    </button>
+  </div>
+</dialog>
+
 <dialog id="dlg-ajuda" aria-labelledby="ajuda-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
   <h2 id="ajuda-titulo" tabindex="-1" autofocus>Como jogar</h2>
   <ol class="passos">
     <li><b>Coma as frutas</b> para crescer e ganhar pontos.</li>
-    <li><b>Não bata</b> nas bordas nem no próprio corpo.</li>
-    <li><b>Para mudar de direção,</b> deslize o dedo no campo, use as setas (ou W A S D) ou os botões embaixo.</li>
-    <li><b>Espaço ou P</b> pausa. Escolha a velocidade em cima: cada uma tem o seu recorde.</li>
+    <li><b>Não bata</b> nas bordas, nos muros nem no próprio corpo.</li>
+    <li><b>Para mudar de direção,</b> deslize o dedo no campo, use as setas (ou W A S D) ou os botões embaixo. Espaço ou P pausa.</li>
+    <li><b>Em Opções</b> você escolhe o tamanho do campo (pequeno é fácil, grande é difícil), a velocidade, o modo, quantas frutas aparecem, a fruta, a cor e o tema.</li>
   </ol>
+  <p class="nota">Modos: <b>Clássico</b> (a borda é parede), <b>Sem bordas</b> (sai de um lado e aparece do outro) e <b>Muros</b> (cada fruta comida faz nascer um bloco).</p>
   <button class="botao largo" id="btn-comecar">Bora jogar</button>
 </dialog>
 
 <dialog id="dlg-estatisticas" aria-labelledby="est-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
   <h2 id="est-titulo" tabindex="-1" autofocus>Recordes</h2>
-  <div class="recordes-minado" id="est-velocidades"></div>
+  <div class="recordes-minado" id="est-lista"></div>
 </dialog>
 
 <script src="../js/som.js"></script>

@@ -5,11 +5,11 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  // Campos mais altos que largos, para caber bem no celular em pé
+  // Mesmos tamanhos do Campo Minado do Google (largura × altura, deitado); no celular em pé, a tela gira o campo
   const NIVEIS = {
-    facil: { nome: "Fácil", cols: 8, linhas: 10, minas: 10 },
-    medio: { nome: "Médio", cols: 12, linhas: 16, minas: 32 },
-    dificil: { nome: "Difícil", cols: 14, linhas: 22, minas: 60 },
+    facil: { nome: "Fácil", cols: 10, linhas: 8, minas: 10 },
+    medio: { nome: "Médio", cols: 18, linhas: 14, minas: 40 },
+    dificil: { nome: "Difícil", cols: 24, linhas: 20, minas: 99 },
   };
 
   function criar(cols, linhas, minas) {
