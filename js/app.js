@@ -295,9 +295,8 @@
     }
     const fileiras = n / colunas;
 
-    // Solo: espaço reservado para todas as linhas (o tabuleiro não muda de tamanho).
-    // Dueto/Quarteto: só as linhas em uso; as peças vão diminuindo conforme o jogo avança.
-    const peca = Math.max(12, Math.floor(medir(colunas, fileiras, n === 1 ? () => info.fichas : linhasVisiveis)));
+    // Espaço reservado para todas as linhas: as que faltam aparecem tracejadas
+    const peca = Math.max(12, Math.floor(medir(colunas, fileiras, () => info.fichas)));
     const raiz = $("#tabuleiros");
     raiz.style.setProperty("--peca", `${peca}px`);
     raiz.style.setProperty("--vao", `${vao}px`);

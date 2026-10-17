@@ -285,7 +285,8 @@ button { font: inherit; color: inherit; }
 /* --peca registrada como comprimento para poder animar a mudança de tamanho */
 @property --peca { syntax: "<length>"; inherits: true; initial-value: 56px; }
 .tabuleiros { display: grid; gap: var(--gap-tab, 0px); grid-template-columns: repeat(var(--cols, 1), auto); align-items: start; transition: --peca .35s ease; }
-.tabuleiros:not([data-n="1"]) .linha.oculta { display: none; }
+/* Tabuleiro já decifrado não mostra as casas que sobraram */
+.tabuleiro.resolvido .linha.oculta { visibility: hidden; }
 .area:has(.tabuleiros:not([data-n="1"])) { align-items: flex-start; }
 .tabuleiros.carregando { opacity: .4; }
 .tabuleiro { display: grid; gap: var(--vao); align-content: start; }
