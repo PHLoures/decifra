@@ -15,11 +15,17 @@ for (const t of L.TAMANHOS) {
 const cores = (palpite, resposta) => L.avaliar(palpite, resposta).map((s) => ({ certa: "V", lugar: "A", errada: "-" })[s]).join("");
 const nova = () => ({ palpites: [], dicas: [] });
 
-test("fases da rodada", () => {
-  assert.deepEqual(L.FASES.map((f) => f.id), ["4", "5", "6", "7", "8", "9", "10", "dueto", "quarteto"]);
+test("fases da rodada: três modos com 4 a 10 letras", () => {
+  assert.equal(L.FASES.length, 21);
+  assert.deepEqual(L.FASES.filter((f) => f.modo === "classico").map((f) => f.id), ["4", "5", "6", "7", "8", "9", "10"]);
   assert.deepEqual(L.TAMANHOS, [4, 5, 6, 7, 8, 9, 10]);
-  assert.equal(L.fase("quarteto").palavras, 4);
+  assert.equal(L.fase("quarteto-10").palavras, 4);
+  assert.equal(L.fase("quarteto-10").fichas, 11);
+  assert.equal(L.fase("dueto-4").fichas, 7);
   assert.equal(L.fase(10).fichas, 8);
+  // Endereços antigos continuam funcionando
+  assert.equal(L.fase("dueto").id, "dueto-5");
+  assert.equal(L.fase("quarteto").fichas, 9);
 });
 
 test("avaliação em qualquer tamanho", () => {
@@ -59,12 +65,14 @@ test("cada fase solo passa por toda a lista antes de repetir", () => {
 });
 
 test("Dueto e Quarteto: palavras diferentes entre si e da fase solo no mesmo dia", () => {
-  const r = DADOS[5].respostas;
-  for (let dia = 1; dia <= 3000; dia++) {
+  for (const t of L.TAMANHOS) {
+  const r = DADOS[t].respostas;
+  for (let dia = 1; dia <= 1500; dia++) {
     const solo = L.palavrasDoDia(r, dia, 1);
     const dueto = L.palavrasDoDia(r, dia, 2);
     const quarteto = L.palavrasDoDia(r, dia, 4);
-    assert.equal(new Set([...solo, ...dueto, ...quarteto]).size, 7, `dia ${dia}`);
+    assert.equal(new Set([...solo, ...dueto, ...quarteto]).size, 7, `${t} letras, dia ${dia}`);
+  }
   }
 });
 

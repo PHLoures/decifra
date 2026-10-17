@@ -1,11 +1,11 @@
 # Decifra
 
-Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, e mais duas fases bônus: **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
+Jogo de palavras em português com cara de placar de estádio e alma de fliperama. Todo dia sai uma **rodada** nova com 7 fases, de palavras de 4 a 10 letras, em três modos: Clássico, **Dueto** e **Quarteto**. Você gasta **fichas** para chutar, pode pedir **dicas** e soma **pontos** no placar do dia.
 
 ## Como funciona
 
 - **Fases:** uma palavra por tamanho (4, 5, 6, 7, 8, 9 e 10 letras), na ordem que você quiser.
-- **Bônus:** no **Dueto** são 2 palavras de 5 letras ao mesmo tempo (7 fichas); no **Quarteto**, 4 palavras (9 fichas). Cada chute vale para todos os tabuleiros, e cada tecla mostra a situação da letra em cada um.
+- **Modos:** **Clássico** (1 palavra), **Dueto** (2 palavras ao mesmo tempo, 1 ficha a mais) e **Quarteto** (4 palavras, 3 fichas a mais), cada um com fases de 4 a 10 letras. No Dueto e no Quarteto cada chute vale para todos os tabuleiros, e cada tecla mostra a situação da letra em cada um.
 - **Fichas:** cada chute gasta uma ficha. São 6 fichas nas fases de 4 e 5 letras, 7 nas de 6 e 7, e 8 nas de 8 a 10.
 - **As letras acendem:**
   - verde com um traço embaixo: a letra está no lugar certo;

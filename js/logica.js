@@ -5,21 +5,29 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  // Rodada do dia: uma fase para cada tamanho de palavra e duas fases bônus com várias palavras
-  // ao mesmo tempo. "fichas" são as tentativas; palavras maiores dão um pouco mais de fôlego.
-  const FASES = [
-    { id: "4", tamanho: 4, palavras: 1, fichas: 6, nome: "4 letras", curto: "4" },
-    { id: "5", tamanho: 5, palavras: 1, fichas: 6, nome: "5 letras", curto: "5" },
-    { id: "6", tamanho: 6, palavras: 1, fichas: 7, nome: "6 letras", curto: "6" },
-    { id: "7", tamanho: 7, palavras: 1, fichas: 7, nome: "7 letras", curto: "7" },
-    { id: "8", tamanho: 8, palavras: 1, fichas: 8, nome: "8 letras", curto: "8" },
-    { id: "9", tamanho: 9, palavras: 1, fichas: 8, nome: "9 letras", curto: "9" },
-    { id: "10", tamanho: 10, palavras: 1, fichas: 8, nome: "10 letras", curto: "10" },
-    { id: "dueto", tamanho: 5, palavras: 2, fichas: 7, nome: "Dueto", curto: "2×" },
-    { id: "quarteto", tamanho: 5, palavras: 4, fichas: 9, nome: "Quarteto", curto: "4×" },
+  // Rodada do dia: três modos (Clássico, Dueto, Quarteto), cada um com uma fase para cada
+  // tamanho de palavra, de 4 a 10 letras. "fichas" são as tentativas; palavras maiores dão
+  // mais fôlego, e cada palavra extra no tabuleiro também.
+  const FICHAS_SOLO = { 4: 6, 5: 6, 6: 7, 7: 7, 8: 8, 9: 8, 10: 8 };
+  const MODOS = [
+    { id: "classico", nome: "Clássico", palavras: 1, fichasExtras: 0 },
+    { id: "dueto", nome: "Dueto", palavras: 2, fichasExtras: 1 },
+    { id: "quarteto", nome: "Quarteto", palavras: 4, fichasExtras: 3 },
   ];
-  const fase = (id) => FASES.find((f) => f.id === String(id));
-  const TAMANHOS = [...new Set(FASES.map((f) => f.tamanho))];
+  const FASES = MODOS.flatMap((m) => Object.keys(FICHAS_SOLO).map(Number).map((t) => ({
+    id: m.palavras === 1 ? String(t) : `${m.id}-${t}`,
+    modo: m.id,
+    nomeModo: m.nome,
+    tamanho: t,
+    palavras: m.palavras,
+    fichas: FICHAS_SOLO[t] + m.fichasExtras,
+    nome: m.palavras === 1 ? `${t} letras` : `${m.nome} · ${t} letras`,
+    curto: String(t),
+  })));
+  // Endereços antigos (#dueto, #quarteto) eram só de 5 letras
+  const ANTIGOS = { dueto: "dueto-5", quarteto: "quarteto-5" };
+  const fase = (id) => FASES.find((f) => f.id === (ANTIGOS[id] || String(id)));
+  const TAMANHOS = Object.keys(FICHAS_SOLO).map(Number);
 
   // Dia 1 do jogo. A virada é à meia-noite de Brasília, para todo mundo ao mesmo tempo.
   const ESTREIA = Date.UTC(2026, 9, 14);
@@ -142,7 +150,7 @@
   }
 
   return {
-    FASES, TAMANHOS, fase, semAcento, avaliar, diaDoJogo, msAteProximoDia, palavrasDoDia,
+    FASES, MODOS, TAMANHOS, fase, semAcento, avaliar, diaDoJogo, msAteProximoDia, palavrasDoDia,
     situacao, pontos, palpitesDoTabuleiro, posicoesConhecidas, proximaDica, letrasConhecidas,
   };
 });

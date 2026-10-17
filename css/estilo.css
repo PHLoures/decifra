@@ -566,3 +566,11 @@ dialog p { line-height: 1.5; margin: 10px 0; font-size: .95rem; color: #d7ddf0; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition: none !important; }
 }
+
+/* Histórico: grade modo × tamanho */
+.por-fase { display: grid; grid-template-columns: auto repeat(7, 1fr); gap: 4px; align-items: center; }
+.por-fase .cabeca { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.05rem; text-align: center; color: var(--ouro); }
+.por-fase .modo-nome { font-family: var(--fonte-placar); font-weight: 800; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-suave); padding-right: 4px; }
+.por-fase .casa { height: 30px; display: grid; place-items: center; border-radius: 7px; background: rgba(14, 24, 56, .7); border: 1px solid var(--linha-borda); font-size: .72rem; font-weight: 700; color: var(--texto-apagado); }
+.por-fase .casa.ganhou { background: var(--certa-fundo); border-color: var(--certa); color: var(--certa-letra); }
+.por-fase .casa.perdeu { border-color: rgba(248, 113, 113, .5); color: var(--perdeu); }

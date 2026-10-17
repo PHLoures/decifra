@@ -96,8 +96,8 @@
   /* ---------- Fases ---------- */
 
   function faseDaUrl() {
-    const id = decodeURIComponent(location.hash.slice(1));
-    return L.fase(id) ? id : null;
+    const f = L.fase(decodeURIComponent(location.hash.slice(1)));
+    return f ? f.id : null;
   }
   // Sem fase na URL: a primeira que ainda não terminou hoje
   const faseInicial = () => faseDaUrl() || IDS.find((id) => ["nova", "andando"].includes(statusFase(id))) || "5";
@@ -149,69 +149,54 @@
   };
   const MARCAS = { limpa: "✓", perdida: "✕", andando: "•", nova: "" };
   const NOMES_STATUS = { nova: "nova", andando: "em andamento", limpa: "limpa", perdida: "perdida" };
-  const SOLOS = L.FASES.filter((f) => f.palavras === 1);
+  const fasesDo = (modo) => L.FASES.filter((f) => f.modo === modo);
+  const terminada = (id) => ["limpa", "perdida"].includes(statusFase(id));
+  // Primeira fase de um modo que ainda não terminou hoje (ou a de 5 letras, se todas acabaram)
+  const entradaDo = (modo) => {
+    const fases = fasesDo(modo);
+    return (fases.find((f) => !terminada(f.id)) || fases[1]).id;
+  };
 
   function desenharFases() {
-    const modoAtual = info.palavras === 1 ? "classico" : info.id;
-
-    // Seletor de modo: Clássico (fases de 4 a 10 letras), Dueto e Quarteto
+    // Seletor de modo: Clássico, Dueto e Quarteto, com selo de quantas fases já foram
     const modos = $("#modos");
     modos.innerHTML = "";
-    const feitas = SOLOS.filter((f) => ["limpa", "perdida"].includes(statusFase(f.id))).length;
-    [
-      { id: "classico", nome: "Clássico", selo: feitas ? `${feitas}/${SOLOS.length}` : "", status: feitas === SOLOS.length ? "limpa" : "" },
-      ...L.FASES.filter((f) => f.palavras > 1).map((f) => ({ id: f.id, nome: f.nome, selo: MARCAS[statusFase(f.id)], status: statusFase(f.id) })),
-    ].forEach((m) => {
-      const b = el("button", `modo${m.id === modoAtual ? " atual" : ""}${m.status ? ` ${m.status}` : ""}`);
+    for (const m of L.MODOS) {
+      const fases = fasesDo(m.id);
+      const feitas = fases.filter((f) => terminada(f.id)).length;
+      const andando = fases.some((f) => statusFase(f.id) === "andando");
+      const atual = m.id === info.modo;
+      const b = el("button", `modo${atual ? " atual" : ""}${feitas === fases.length ? " limpa" : andando || feitas ? " andando" : ""}`);
       b.type = "button";
-      if (m.id === modoAtual) b.setAttribute("aria-current", "page");
+      if (atual) b.setAttribute("aria-current", "page");
+      b.setAttribute("aria-label", `${m.nome}, ${feitas} de ${fases.length} fases jogadas`);
       const icone = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       icone.setAttribute("viewBox", "0 0 24 24");
       icone.setAttribute("aria-hidden", "true");
       icone.innerHTML = ICONES[m.id];
       b.append(icone, el("span", "", m.nome));
-      if (m.selo) b.appendChild(el("em", "selo", m.selo));
+      if (feitas || andando) b.appendChild(el("em", "selo", `${feitas}/${fases.length}`));
       b.addEventListener("click", () => {
-        if (m.id === modoAtual) return;
-        if (m.id !== "classico") location.hash = `#${m.id}`;
-        else {
-          // Volta para a primeira fase do clássico que ainda não terminou
-          const prox = SOLOS.find((f) => ["nova", "andando"].includes(statusFase(f.id))) || SOLOS[1];
-          location.hash = `#${prox.id}`;
-        }
+        if (!atual) location.hash = `#${entradaDo(m.id)}`;
       });
       modos.appendChild(b);
-    });
-
-    // Linha de baixo: as fases do clássico ou a explicação do bônus
-    const fases = $("#fases");
-    const bonus = $("#bonus-info");
-    // No bônus, depois do primeiro chute as etiquetas saem para sobrar espaço aos tabuleiros
-    $(".subfaixa").classList.toggle("recolhida", modoAtual !== "classico" && (estado.palpites.length > 0 || estado.dicas.length > 0));
-    fases.hidden = modoAtual !== "classico";
-    bonus.hidden = modoAtual === "classico";
-    fases.innerHTML = "";
-    if (modoAtual === "classico") {
-      SOLOS.forEach((f, i) => {
-        const status = statusFase(f.id);
-        const b = el("button", `fase ${status}${f.id === info.id ? " atual" : ""}`);
-        b.type = "button";
-        b.setAttribute("aria-label", `Fase ${i + 1}, ${f.nome}, ${NOMES_STATUS[status]}`);
-        if (f.id === info.id) b.setAttribute("aria-current", "step");
-        b.append(el("strong", "", f.curto), el("span", "marca", MARCAS[status]));
-        b.addEventListener("click", () => {
-          if (f.id !== info.id) location.hash = `#${f.id}`;
-        });
-        fases.appendChild(b);
-      });
-    } else {
-      bonus.innerHTML = "";
-      for (const [n, t] of [[info.palavras, "palavras juntas"], [info.tamanho, "letras cada"], [info.fichas, "fichas"]]) {
-        const etiqueta = el("span", "etiqueta");
-        etiqueta.append(el("strong", "", n), el("span", "", t));
-        bonus.appendChild(etiqueta);
-      }
     }
+
+    // Linha de baixo: as fases de 4 a 10 letras do modo atual
+    const fases = $("#fases");
+    fases.innerHTML = "";
+    fasesDo(info.modo).forEach((f) => {
+      const status = statusFase(f.id);
+      const b = el("button", `fase ${status}${f.id === info.id ? " atual" : ""}`);
+      b.type = "button";
+      b.setAttribute("aria-label", `${f.nome}, ${NOMES_STATUS[status]}`);
+      if (f.id === info.id) b.setAttribute("aria-current", "step");
+      b.append(el("strong", "", f.curto), el("span", "marca", MARCAS[status]));
+      b.addEventListener("click", () => {
+        if (f.id !== info.id) location.hash = `#${f.id}`;
+      });
+      fases.appendChild(b);
+    });
   }
 
   function desenharPainel() {
@@ -656,7 +641,7 @@
     const sit = situacao();
     const n = info.palavras;
     const i = IDS.indexOf(info.id);
-    $("#res-rotulo").textContent = n > 1 ? `bônus · ${n} palavras de ${tamanho} letras` : `fase ${i + 1} · ${tamanho} letras`;
+    $("#res-rotulo").textContent = n > 1 ? `${info.nomeModo} · ${n} palavras de ${tamanho} letras` : `clássico · ${tamanho} letras`;
     const titulo = !sit.venceu ? "Fichas esgotadas"
       : estado.palpites.length === n && !estado.dicas.length ? (n > 1 ? "Perfeito!" : "De primeira!")
       : sit.restantes === 0 ? "No sufoco!"
@@ -726,7 +711,7 @@
     const prox = proximaFase();
     const btn = $("#btn-proxima");
     const proxInfo = prox && L.fase(prox);
-    btn.textContent = !proxInfo ? "Ver histórico" : proxInfo.palavras > 1 ? `Próxima: bônus ${proxInfo.nome} ▸` : `Próxima: ${proxInfo.nome} ▸`;
+    btn.textContent = !proxInfo ? "Ver histórico" : `Próxima: ${proxInfo.nome} ▸`;
     btn.onclick = () => {
       if (prox) location.hash = `#${prox}`;
       else abrir("#dlg-historico");
@@ -751,42 +736,42 @@
       numeros.appendChild(d);
     });
 
-    const lista = $("#hist-fases");
-    lista.innerHTML = "";
-    for (const f of L.FASES) {
-      const r = h.fases[f.id] || { jogos: 0, vitorias: 0, melhor: null };
-      const linha = el("div", "linha-fase");
-      const barra = el("span", "medidor");
-      const cheio = el("i");
-      cheio.style.width = `${Math.round((r.jogos ? r.vitorias / r.jogos : 0) * 100)}%`;
-      barra.appendChild(cheio);
-      linha.append(
-        el("strong", "", f.curto),
-        el("span", "texto", r.jogos ? `limpou ${r.vitorias} de ${r.jogos}` : f.palavras > 1 ? `${f.nome}: ainda não jogou` : "ainda não jogou"),
-        barra,
-        el("span", "melhor", r.melhor != null ? `melhor: ${plural(r.melhor, "ficha", "fichas")}` : "")
-      );
-      lista.appendChild(linha);
+    // Grade: uma linha por modo, uma coluna por tamanho; cada casa mostra vitórias/jogos
+    const grade = $("#hist-fases");
+    grade.innerHTML = "";
+    grade.appendChild(el("span", "canto"));
+    for (const t of L.TAMANHOS) grade.appendChild(el("span", "cabeca", t));
+    for (const m of L.MODOS) {
+      grade.appendChild(el("span", "modo-nome", m.nome));
+      for (const f of fasesDo(m.id)) {
+        const r = h.fases[f.id] || { jogos: 0, vitorias: 0 };
+        const casa = el("span", `casa${r.jogos ? (r.vitorias ? " ganhou" : " perdeu") : ""}`, r.jogos ? `${r.vitorias}/${r.jogos}` : "–");
+        casa.title = r.jogos ? `${f.nome}: limpou ${r.vitorias} de ${r.jogos}` : `${f.nome}: ainda não jogou`;
+        grade.appendChild(casa);
+      }
     }
   }
 
   /* ---------- Compartilhar ---------- */
 
   function textoRodada() {
-    const linhasTexto = L.FASES.map((f) => {
-      const e = estadoDe(f.id);
-      const gastas = e.palpites.length + e.dicas.length;
-      const rotulo = f.curto.padStart(2, " ");
-      if (!e.contabilizado) return `${rotulo} ${e.palpites.length ? "em jogo" : "—"}`;
-      const dica = e.dicas.length ? " 💡" : "";
-      if (e.venceu === false || !e.pontos) {
-        return e.pontos ? `${rotulo} ✕ parcial +${fmt.format(e.pontos)}${dica}` : `${rotulo} ✕ fichas esgotadas`;
+    const blocos = [];
+    for (const m of L.MODOS) {
+      const linhas = [];
+      for (const f of fasesDo(m.id)) {
+        const e = estadoDe(f.id);
+        if (!e.palpites.length && !e.dicas.length) continue;
+        const gastas = e.palpites.length + e.dicas.length;
+        const rotulo = f.curto.padStart(2, " ");
+        const dica = e.dicas.length ? " 💡" : "";
+        if (!e.contabilizado) linhas.push(`${rotulo} em jogo`);
+        else if (e.venceu === false || !e.pontos) linhas.push(e.pontos ? `${rotulo} ✕ parcial +${fmt.format(e.pontos)}${dica}` : `${rotulo} ✕`);
+        else linhas.push(`${rotulo} ${"▰".repeat(gastas)}${"▱".repeat(f.fichas - gastas)} +${fmt.format(e.pontos)}${dica}`);
       }
-      const barra = "▰".repeat(gastas) + "▱".repeat(f.fichas - gastas);
-      return `${rotulo} ${barra} +${fmt.format(e.pontos)}${dica}`;
-    });
+      if (linhas.length) blocos.push(`${m.nome.toUpperCase()}\n${linhas.join("\n")}`);
+    }
     const endereco = location.origin + location.pathname;
-    return `${NOME.toUpperCase()} · rodada #${String(dia).padStart(3, "0")}\n⚡ ${fmt.format(placarDoDia())} pontos\n\n${linhasTexto.join("\n")}\n\n${endereco}`;
+    return `${NOME.toUpperCase()} · rodada #${String(dia).padStart(3, "0")}\n⚡ ${fmt.format(placarDoDia())} pontos\n\n${blocos.join("\n\n") || "ainda sem jogadas"}\n\n${endereco}`;
   }
 
   async function compartilhar() {
