@@ -1,5 +1,5 @@
 // Deixa o jogo funcionando sem internet. Ao mudar a lista de ARQUIVOS, aumente a VERSAO.
-const VERSAO = "v20";
+const VERSAO = "v21";
 const CACHE = `decifra-${VERSAO}`;
 const ARQUIVOS = [
   "./",
@@ -13,7 +13,7 @@ const ARQUIVOS = [
   "dados/5.txt",
   "dados/6.txt",
   "manifest.webmanifest",
-  "icone.svg",
+  "icone-d.svg",
   "icone-192.png",
   "icone-512.png",
 ];
