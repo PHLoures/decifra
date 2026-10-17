@@ -11,7 +11,7 @@
 .contador.recorde { justify-content: flex-end; color: var(--ouro); }
 .contador svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .contador strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--texto); }
-.emoji-fruta { font-size: 1.3rem; line-height: 1; }
+.icone-fruta { width: 26px; height: 26px; }
 .botao-opcoes {
   display: flex; align-items: center; gap: 6px;
   height: 38px; padding: 0 14px;
@@ -118,3 +118,9 @@
   .opcao-tile { height: 42px; }
   .opcao-tile .grande { font-size: 1.25rem; }
 }
+
+/* Ícones desenhados (sem emoji) nos quadradinhos de opção */
+.opcao-tile svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.opcao-tile canvas { width: 28px; height: 28px; }
+.opcao-tile .com-numero { display: flex; align-items: center; gap: 3px; font-family: var(--fonte-placar); font-weight: 800; font-size: 1.25rem; line-height: 1; }
+.opcao-tile .com-numero canvas { width: 20px; height: 20px; }

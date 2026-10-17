@@ -1,15 +1,15 @@
 // Tela da Cobrinha: menu de opções (no estilo do Snake do Google), desenho suave no canvas,
-// controles e recordes.
+// controles sem atraso e recordes.
 (() => {
   "use strict";
 
   const C = window.Comum;
   const S = window.LogicaCobrinha;
+  const F = window.Frutas;
   const { $, el, guardado, tocar } = C;
 
   /* ---------- Opções ---------- */
 
-  const FRUTAS = ["🍎", "🍌", "🍍", "🍇", "🍓", "🍒", "🍊", "🍉"];
   const CORES = {
     // "claro": tons mais fortes da mesma cor, para aparecer bem nos temas Dia e Neve
     menta: { nome: "Menta", corpo: "#7fdcae", borda: "#5fbf91", claro: ["#4cc28a", "#2f9a68"] },
@@ -19,29 +19,56 @@
     rosa: { nome: "Rosa", corpo: "#f5a3c0", borda: "#dc82a2", claro: ["#e8749f", "#c85580"] },
   };
   const TEMAS = {
-    noite: { nome: "Noite", icone: "🌙", a: "#323752", b: "#2e3249", muro: "#5c6290", junta: "#454a6c", fim: "rgba(43, 47, 69, .35)" },
-    dia: { nome: "Dia", icone: "☀️", claro: true, a: "#e2efd9", b: "#d5e7cb", muro: "#a3b39a", junta: "#8b9b83", fim: "rgba(255, 255, 255, .3)" },
-    neve: { nome: "Neve", icone: "❄️", claro: true, a: "#e9f0fa", b: "#dbe6f4", muro: "#a8b7ce", junta: "#91a1ba", fim: "rgba(255, 255, 255, .3)" },
-    vulcao: { nome: "Vulcão", icone: "🌋", a: "#3f2c35", b: "#37252d", muro: "#8a5a52", junta: "#6e463f", fim: "rgba(30, 18, 24, .35)" },
+    noite: { nome: "Noite", a: "#323752", b: "#2e3249", muro: "#5c6290", junta: "#454a6c", fim: "rgba(43, 47, 69, .35)" },
+    dia: { nome: "Dia", claro: true, a: "#e2efd9", b: "#d5e7cb", muro: "#a3b39a", junta: "#8b9b83", fim: "rgba(255, 255, 255, .3)" },
+    neve: { nome: "Neve", claro: true, a: "#e9f0fa", b: "#dbe6f4", muro: "#a8b7ce", junta: "#91a1ba", fim: "rgba(255, 255, 255, .3)" },
+    vulcao: { nome: "Vulcão", a: "#3f2c35", b: "#37252d", muro: "#8a5a52", junta: "#6e463f", fim: "rgba(30, 18, 24, .35)" },
   };
-  const ICONES_VEL = { lenta: "🐢", normal: "🐍", rapida: "🐇" };
-  const ICONES_MODO = { classico: "🏆", "sem-bordas": "🌀", muros: "🧱" };
-  const PADRAO = { tamanho: "medio", velocidade: "normal", modo: "classico", frutas: 1, fruta: "🍎", cor: "menta", tema: "noite" };
+  // Ícones de linha (SVG) para o menu
+  const ICONES = {
+    lenta: '<path d="M10 6l6 6-6 6"/>',
+    normal: '<path d="M6 6l6 6-6 6M13 6l6 6-6 6"/>',
+    rapida: '<path d="M3 6l6 6-6 6M9.5 6l6 6-6 6M16 6l6 6-6 6"/>',
+    classico: '<rect x="4" y="4" width="16" height="16" rx="2.5"/>',
+    "sem-bordas": '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path d="M8 12h8M13 9l3 3-3 3"/>',
+    muros: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M9 5v7M15 12v7"/>',
+    noite: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    dia: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+    neve: '<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+    vulcao: '<path d="M3 20l6-10h6l6 10z"/><path d="M10 10l2-3 2 3M12 4V2M8.5 5L7 3.5M15.5 5L17 3.5"/>',
+  };
+  const PADRAO = { tamanho: "medio", velocidade: "normal", modo: "classico", frutas: 1, fruta: "maca", cor: "menta", tema: "noite" };
+
+  const svg = (desenho) => {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 24 24");
+    s.setAttribute("aria-hidden", "true");
+    s.innerHTML = desenho;
+    return s;
+  };
+  const iconeFruta = (tipo, tam = 28) => {
+    const c = el("canvas");
+    c.style.width = `${tam}px`;
+    c.style.height = `${tam}px`;
+    c.width = tam;
+    requestAnimationFrame(() => F.pintarIcone(c, tipo));
+    return c;
+  };
 
   // Cada escolha do menu: nome, valores possíveis e como desenhar o quadradinho
   const ESCOLHAS = [
     { chave: "tamanho", nome: "Tamanho do campo (dificuldade)", valores: Object.keys(S.TAMANHOS), tile: (v) => tileTamanho(v) },
-    { chave: "velocidade", nome: "Velocidade", valores: Object.keys(S.VELOCIDADES), tile: (v) => [ICONES_VEL[v], S.VELOCIDADES[v].nome] },
-    { chave: "modo", nome: "Modo", valores: Object.keys(S.MODOS), tile: (v) => [ICONES_MODO[v], S.MODOS[v].nome] },
-    { chave: "frutas", nome: "Frutas no campo", valores: S.QUANTIDADES, tile: (v) => [String(v), v === 1 ? "uma" : `${v} juntas`] },
-    { chave: "fruta", nome: "Fruta", valores: FRUTAS, tile: (v) => [v, null] },
+    { chave: "velocidade", nome: "Velocidade", valores: Object.keys(S.VELOCIDADES), tile: (v) => [svg(ICONES[v]), S.VELOCIDADES[v].nome] },
+    { chave: "modo", nome: "Modo", valores: Object.keys(S.MODOS), tile: (v) => [svg(ICONES[v]), S.MODOS[v].nome] },
+    { chave: "frutas", nome: "Frutas no campo", valores: S.QUANTIDADES, tile: (v) => tileQuantidade(v) },
+    { chave: "fruta", nome: "Fruta", valores: Object.keys(F.FRUTAS), tile: (v) => [iconeFruta(v), F.FRUTAS[v].nome] },
     { chave: "cor", nome: "Cor da cobra", valores: Object.keys(CORES), tile: (v) => tileCor(v) },
-    { chave: "tema", nome: "Tema", valores: Object.keys(TEMAS), tile: (v) => [TEMAS[v].icone, TEMAS[v].nome] },
+    { chave: "tema", nome: "Tema", valores: Object.keys(TEMAS), tile: (v) => [svg(ICONES[v]), TEMAS[v].nome] },
   ];
 
   function carregarOpcoes() {
     const o = Object.assign({}, PADRAO, guardado.ler("cobrinha:opcoes", {}));
-    // Valor salvo que não existe mais volta ao padrão
+    // Valor salvo que não existe mais (ex.: as frutas antigas em emoji) volta ao padrão
     for (const e of ESCOLHAS) if (!e.valores.includes(o[e.chave])) o[e.chave] = PADRAO[e.chave];
     return o;
   }
@@ -52,6 +79,8 @@
 
   let jogo = null;
   let anterior = null; // posições antes do último passo, para deslizar entre as casas
+  let antesDoPasso = null; // cópia do jogo antes do último passo (para virar sem atraso)
+  let ultimoPasso = null;
   let estadoTela = "pronto"; // pronto | jogando | pausado | fim
   let acumulado = 0;
   let ultimoQuadro = 0;
@@ -62,6 +91,14 @@
 
   const chaveRecorde = () => `${opcoes.tamanho}|${opcoes.velocidade}|${opcoes.modo}`;
   const lerRecordes = () => guardado.ler("cobrinha:recordes2", {});
+  const passoMs = () => S.VELOCIDADES[opcoes.velocidade].ms;
+  const copiar = (e) => ({
+    ...e,
+    cobra: e.cobra.map((p) => ({ ...p })),
+    fila: [...e.fila],
+    muros: e.muros.map((p) => ({ ...p })),
+    comidas: e.comidas.map((p) => ({ ...p })),
+  });
 
   /* ---------- Tamanho do campo ---------- */
 
@@ -93,10 +130,12 @@
     const [cols, linhas] = dimensoes();
     jogo = S.criar(cols, linhas, { modo: opcoes.modo, frutas: opcoes.frutas });
     anterior = jogo.cobra.map((p) => ({ ...p }));
+    antesDoPasso = null;
+    ultimoPasso = null;
     acumulado = 0;
     estadoTela = "pronto";
     $("#chip").textContent = `${S.TAMANHOS[opcoes.tamanho].nome.toLowerCase()} · ${S.VELOCIDADES[opcoes.velocidade].nome.toLowerCase()}`;
-    $("#fruta-placar").textContent = opcoes.fruta;
+    F.pintarIcone($("#fruta-placar"), opcoes.fruta);
     atualizarPlacar();
     mostrarSobreposicao("Cobrinha", `${S.MODOS[opcoes.modo].nome} · deslize ou use as setas para começar`, "Jogar");
     dimensionar();
@@ -126,6 +165,52 @@
     $("#sobreposicao").hidden = false;
   }
 
+  // Um passo da cobra, guardando o necessário para animar e para poder refazê-lo
+  function darPasso(agora) {
+    antesDoPasso = copiar(jogo);
+    anterior = jogo.cobra.map((p) => ({ ...p }));
+    const r = S.passo(jogo);
+    ultimoPasso = r;
+    return tratarPasso(r, agora);
+  }
+  const NOMES_DIR = { cima: "para cima", baixo: "para baixo", esquerda: "para a esquerda", direita: "para a direita" };
+  function tratarPasso(r, agora) {
+    tela.dataset.direcao = jogo.dir;
+    tela.setAttribute("aria-label", `Cobrinha indo ${NOMES_DIR[jogo.dir]}, ${jogo.pontos} ${jogo.pontos === 1 ? "fruta" : "frutas"}`);
+    if (r.comeu) {
+      comeuEm = agora;
+      tocar("moeda");
+      atualizarPlacar();
+    }
+    if (r.bateu || !jogo.vivo) {
+      terminar();
+      return false;
+    }
+    return true;
+  }
+
+  // Virar sem atraso: em vez de esperar o próximo passo, a cobra vira na hora.
+  // No começo de um passo, ele é refeito já virando; no fim, o próximo passo é adiantado.
+  function virarJa(dir) {
+    const filaVazia = jogo.fila.length === 0;
+    if (!S.virar(jogo, dir) || !filaVazia) return;
+    const t = acumulado / passoMs();
+    const agora = performance.now();
+    const podeRefazer = antesDoPasso && ultimoPasso && !ultimoPasso.comeu && antesDoPasso.dir === jogo.dir && antesDoPasso.fila.length === 0;
+    if (t < 0.5 && podeRefazer && S.virar(antesDoPasso, dir)) {
+      const fila = jogo.fila.slice(1);
+      jogo = copiar(antesDoPasso);
+      jogo.fila.push(...fila);
+      const r = S.passo(jogo);
+      ultimoPasso = r;
+      tratarPasso(r, agora);
+    } else {
+      acumulado = 0;
+      darPasso(agora);
+    }
+    desenhar(acumulado / passoMs());
+  }
+
   function virar(dir) {
     if (estadoTela === "fim" || document.querySelector("dialog[open]")) return;
     if (estadoTela !== "jogando") {
@@ -134,26 +219,18 @@
       comecar();
       return;
     }
-    S.virar(jogo, dir);
+    virarJa(dir);
   }
 
   function quadro(agora) {
     if (estadoTela !== "jogando") return;
-    const passoMs = S.VELOCIDADES[opcoes.velocidade].ms;
     acumulado += Math.min(agora - ultimoQuadro, 250);
     ultimoQuadro = agora;
-    while (acumulado >= passoMs && estadoTela === "jogando") {
-      acumulado -= passoMs;
-      anterior = jogo.cobra.map((p) => ({ ...p }));
-      const r = S.passo(jogo);
-      if (r.comeu) {
-        comeuEm = agora;
-        tocar("moeda");
-        atualizarPlacar();
-      }
-      if (r.bateu || !jogo.vivo) return terminar();
+    while (acumulado >= passoMs() && estadoTela === "jogando") {
+      acumulado -= passoMs();
+      if (!darPasso(agora)) return;
     }
-    desenhar(acumulado / passoMs);
+    desenhar(acumulado / passoMs());
     requestAnimationFrame(quadro);
   }
 
@@ -187,11 +264,33 @@
 
   /* ---------- Desenho ---------- */
 
+  const centro = (p) => ({ x: (p.x + 0.5) * casa, y: (p.y + 0.5) * casa });
+  const misturar = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
+  const saltou = (a, b) => Math.abs(a.x - b.x) > 1 || Math.abs(a.y - b.y) > 1;
+
+  // Trilho do corpo: a cabeça desliza para a casa nova, o meio segue exatamente o centro das
+  // casas (curvas em ângulo reto, arredondadas) e a ponta do rabo desliza para fora da casa antiga.
+  function trilho(t) {
+    const atual = jogo.cobra;
+    const n = atual.length;
+    const pontos = [];
+    const cab = atual[0];
+    const cabAntes = anterior[0] || cab;
+    pontos.push(saltou(cabAntes, cab) ? centro(cab) : centro(misturar(cabAntes, cab, t)));
+    for (let i = 1; i < n; i++) pontos.push(centro(atual[i]));
+    if (n > 1) {
+      const rabo = atual[n - 1];
+      const raboAntes = anterior[n - 1];
+      // Se cresceu, o rabo fica parado; senão, sai devagar da casa em que estava
+      pontos.push(!raboAntes || saltou(raboAntes, rabo) ? centro(rabo) : centro(misturar(raboAntes, rabo, t)));
+    }
+    return pontos;
+  }
+
   function desenhar(t) {
     if (!jogo) return;
     const tema = TEMAS[opcoes.tema];
     const cor = CORES[opcoes.cor];
-    // Campo quadriculado
     for (let y = 0; y < jogo.linhas; y++) {
       for (let x = 0; x < jogo.cols; x++) {
         ctx.fillStyle = (x + y) % 2 ? tema.a : tema.b;
@@ -201,41 +300,17 @@
     for (const m of jogo.muros) desenharMuro(m, tema);
     for (const c of jogo.comidas) desenharFruta(c);
 
-    // Cada gomo desliza da casa anterior para a atual, formando uma linha contínua.
-    // No modo sem bordas, quando um gomo atravessa, ele aparece direto do outro lado.
-    const k = estadoTela === "fim" ? 1 : t;
-    const pontos = jogo.cobra.map((p, i) => {
-      const a = anterior[i] || p;
-      const pulou = Math.abs(a.x - p.x) > 1 || Math.abs(a.y - p.y) > 1;
-      const base = pulou ? p : a;
-      return { x: (base.x + (p.x - base.x) * k + 0.5) * casa, y: (base.y + (p.y - base.y) * k + 0.5) * casa };
-    });
+    const pontos = trilho(estadoTela === "fim" ? 1 : Math.max(0, Math.min(1, t)));
+    const [corpo, borda] = tema.claro ? cor.claro : [cor.corpo, cor.borda];
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    const [corpo, borda] = tema.claro ? cor.claro : [cor.corpo, cor.borda];
     ctx.strokeStyle = borda;
-    ctx.lineWidth = casa * 0.78;
+    ctx.lineWidth = casa * 0.76;
     tracar(pontos);
     ctx.strokeStyle = corpo;
-    ctx.lineWidth = casa * 0.64;
+    ctx.lineWidth = casa * 0.62;
     tracar(pontos);
-
-    // Olhos na direção do movimento
-    const cabeca = pontos[0];
-    const [dx, dy] = S.DIRECOES[jogo.dir];
-    const lado = { x: -dy, y: dx };
-    for (const s of [-1, 1]) {
-      const ox = cabeca.x + dx * casa * 0.12 + lado.x * s * casa * 0.17;
-      const oy = cabeca.y + dy * casa * 0.12 + lado.y * s * casa * 0.17;
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(ox, oy, casa * 0.12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#24283e";
-      ctx.beginPath();
-      ctx.arc(ox + dx * casa * 0.04, oy + dy * casa * 0.04, casa * 0.065, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    desenharOlhos(pontos[0]);
 
     if (estadoTela === "fim" && !jogo.venceu) {
       ctx.fillStyle = tema.fim;
@@ -243,7 +318,7 @@
     }
   }
 
-  // Linha da cobra; no modo sem bordas, quebra o traço onde ela atravessa a borda
+  // No modo sem bordas, o traço é interrompido onde a cobra atravessa a borda
   function tracar(pontos) {
     ctx.beginPath();
     ctx.moveTo(pontos[0].x, pontos[0].y);
@@ -256,6 +331,23 @@
     ctx.stroke();
   }
 
+  function desenharOlhos(cabeca) {
+    const [dx, dy] = S.DIRECOES[jogo.dir];
+    const lado = { x: -dy, y: dx };
+    for (const s of [-1, 1]) {
+      const ox = cabeca.x + dx * casa * 0.1 + lado.x * s * casa * 0.16;
+      const oy = cabeca.y + dy * casa * 0.1 + lado.y * s * casa * 0.16;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(ox, oy, casa * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#24283e";
+      ctx.beginPath();
+      ctx.arc(ox + dx * casa * 0.04, oy + dy * casa * 0.04, casa * 0.065, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   function desenharMuro(m, tema) {
     const x = m.x * casa + casa * 0.06;
     const y = m.y * casa + casa * 0.06;
@@ -264,7 +356,6 @@
     ctx.beginPath();
     ctx.roundRect(x, y, l, l, casa * 0.18);
     ctx.fill();
-    // Juntas dos tijolos
     ctx.strokeStyle = tema.junta;
     ctx.lineWidth = Math.max(1, casa * 0.06);
     ctx.beginPath();
@@ -280,18 +371,13 @@
   }
 
   function desenharFruta(c) {
-    const cx = (c.x + 0.5) * casa;
-    const cy = (c.y + 0.5) * casa;
-    // Pulsa de leve; logo depois de comer, a nova fruta "nasce" crescendo
+    // Respira de leve; logo depois de comer, a fruta nova "nasce" crescendo
     const nasce = Math.min(1, (performance.now() - comeuEm) / 220);
-    const escala = (0.6 + 0.4 * nasce) * (1 + 0.05 * Math.sin(performance.now() / 180));
+    const escala = (0.6 + 0.4 * nasce) * (1 + 0.04 * Math.sin(performance.now() / 220));
     ctx.save();
-    ctx.translate(cx, cy);
+    ctx.translate((c.x + 0.5) * casa, (c.y + 0.5) * casa);
     ctx.scale(escala, escala);
-    ctx.font = `${Math.round(casa * 0.8)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(opcoes.fruta, 0, casa * 0.04);
+    F.FRUTAS[opcoes.fruta].desenhar(ctx, casa * 0.4);
     ctx.restore();
   }
 
@@ -311,6 +397,11 @@
     bola.style.boxShadow = `inset 0 0 0 3px ${CORES[v].borda}`;
     return [bola, CORES[v].nome];
   }
+  function tileQuantidade(v) {
+    const caixa = el("span", "com-numero");
+    caixa.append(String(v), iconeFruta(rascunho.fruta, 20));
+    return [caixa, v === 1 ? "uma" : "juntas"];
+  }
 
   function desenharOpcoes() {
     const raiz = $("#grupos-opcoes");
@@ -327,8 +418,7 @@
         b.type = "button";
         b.setAttribute("aria-pressed", rascunho[e.chave] === v ? "true" : "false");
         b.setAttribute("aria-label", rotulo || String(v));
-        if (typeof icone === "string") b.appendChild(el("span", "grande", icone));
-        else b.appendChild(icone);
+        b.appendChild(icone);
         if (rotulo) b.appendChild(el("small", "", rotulo));
         b.addEventListener("click", () => {
           rascunho[e.chave] = v;
@@ -405,7 +495,7 @@
     if (document.querySelector("dialog[open]")) return;
     if (TECLAS[e.key]) {
       e.preventDefault();
-      virar(TECLAS[e.key]);
+      if (!e.repeat) virar(TECLAS[e.key]);
     } else if (e.key === " " || e.key === "p" || e.key === "P") {
       e.preventDefault();
       if (estadoTela === "jogando") pausar();
@@ -416,7 +506,7 @@
     }
   });
 
-  // Deslizar o dedo no campo
+  // Deslizar o dedo no campo: reage logo no começo do gesto
   let toque = null;
   const moldura = $("#moldura");
   moldura.addEventListener("pointerdown", (e) => {
@@ -427,12 +517,13 @@
     if (!toque) return;
     const dx = e.clientX - toque.x;
     const dy = e.clientY - toque.y;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 12) return;
     virar(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "direita" : "esquerda") : dy > 0 ? "baixo" : "cima");
     toque = { x: e.clientX, y: e.clientY };
   });
   ["pointerup", "pointercancel", "pointerleave"].forEach((t) => moldura.addEventListener(t, () => { toque = null; }));
 
+  // Botões de direção respondem no toque (pointerdown), sem esperar soltar o dedo
   document.querySelectorAll(".seta-dir[data-dir]").forEach((b) => {
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); virar(b.dataset.dir); });
   });
@@ -447,7 +538,7 @@
   $("#dlg-ajuda").addEventListener("close", () => guardado.gravar("cobrinha:viuAjuda", true));
   new ResizeObserver(dimensionar).observe($("#area"));
 
-  // A fruta pulsa mesmo com o jogo parado
+  // A fruta respira mesmo com o jogo parado
   (function animarParado() {
     if (estadoTela !== "jogando") desenhar(1);
     requestAnimationFrame(animarParado);
