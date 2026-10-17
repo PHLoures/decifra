@@ -511,7 +511,8 @@
       if (!travada(cursor)) atual[cursor] = "";
     } else if (k === "ArrowLeft") {
       cursor = Math.max(0, cursor - 1);
-    } else if (k === "ArrowRight") {
+    } else if (k === "ArrowRight" || k === " ") {
+      // Espaço pula para a próxima casa, como a seta para a direita
       cursor = Math.min(tamanho - 1, cursor + 1);
     } else {
       const letra = L.semAcento(k);
