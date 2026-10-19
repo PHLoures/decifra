@@ -1,5 +1,6 @@
 // Regras do Flappy, sem nada de tela (testadas em testes/flappy.test.js).
-// O mundo tem 288×512 unidades e anda em passos de 1/60 s.
+// O mundo tem 512 unidades de altura e a largura da tela (288 no formato clássico);
+// anda em passos de 1/60 s.
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
   else raiz.LogicaFlappy = fabrica();
@@ -15,6 +16,8 @@
   const RAIO = 12;
   const CANO_L = 52;
   const PASSARO_X = 80;
+  // Em telas largas o passarinho fica um pouco mais para dentro, mas sempre perto da esquerda
+  const posicaoX = (largura) => Math.round(Math.max(PASSARO_X, Math.min(largura * 0.28, 210)));
 
   // vão = abertura entre os canos; vel = quanto o cenário anda por passo; dist = espaço entre canos
   const NIVEIS = {
@@ -24,11 +27,14 @@
     impossivel: { nome: "Impossível", vao: 98, vel: 3.0, dist: 160, sobeDesce: true },
   };
 
-  function criar({ nivel = "facil", aleatorio = Math.random } = {}) {
+  // teto: em telas compridas o céu continua acima do 0 (valor negativo)
+  function criar({ nivel = "facil", aleatorio = Math.random, largura = L, teto = 0 } = {}) {
     return {
       cfg: NIVEIS[nivel] || NIVEIS.facil,
       aleatorio,
-      passaro: { x: PASSARO_X, y: 230, vy: 0 },
+      L: largura,
+      teto,
+      passaro: { x: posicaoX(largura), y: 230, vy: 0 },
       canos: [],
       pontos: 0,
       iniciado: false,
@@ -47,7 +53,7 @@
     if (e.fim) return false;
     if (!e.iniciado) {
       e.iniciado = true;
-      novoCano(e, L + 40);
+      novoCano(e, e.L + 40);
     }
     e.passaro.vy = PULO;
     return true;
@@ -65,7 +71,7 @@
     const r = RAIO * 0.82;
     const topo = c.meio - e.cfg.vao / 2;
     const fundo = c.meio + e.cfg.vao / 2;
-    return bate(p.x, p.y, r, c.x, -200, c.x + CANO_L, topo) || bate(p.x, p.y, r, c.x, fundo, c.x + CANO_L, CHAO);
+    return bate(p.x, p.y, r, c.x, e.teto - 200, c.x + CANO_L, topo) || bate(p.x, p.y, r, c.x, fundo, c.x + CANO_L, CHAO);
   }
 
   // Avança 1/60 s. Devolve { ponto, bateu }.
@@ -87,7 +93,7 @@
     }
     p.vy = Math.min(p.vy + GRAVIDADE, QUEDA_MAX);
     p.y += p.vy;
-    if (p.y - RAIO < 0) { p.y = RAIO; p.vy = 0; } // o teto não mata, só segura
+    if (p.y - RAIO < e.teto) { p.y = e.teto + RAIO; p.vy = 0; } // o teto não mata, só segura
 
     for (const c of e.canos) {
       c.x -= e.cfg.vel;
@@ -104,7 +110,8 @@
     }
     e.canos = e.canos.filter((c) => c.x + CANO_L > -10);
     const ultimo = e.canos[e.canos.length - 1];
-    if (!ultimo || ultimo.x < L - e.cfg.dist) novoCano(e, (ultimo ? ultimo.x : L) + e.cfg.dist);
+    // O próximo cano nasce sempre fora da tela, à direita
+    if (!ultimo || ultimo.x + e.cfg.dist <= e.L + 40) novoCano(e, ultimo ? ultimo.x + e.cfg.dist : e.L + 40);
 
     if (p.y + RAIO >= CHAO || e.canos.some((c) => colideCano(e, c))) {
       if (p.y + RAIO >= CHAO) p.y = CHAO - RAIO;
@@ -114,8 +121,15 @@
     return r;
   }
 
+  // A tela mudou de tamanho: os próximos canos nascem na nova borda direita
+  function redimensionar(e, largura, teto = 0) {
+    e.L = largura;
+    e.teto = teto;
+    if (!e.iniciado) e.passaro.x = posicaoX(largura);
+  }
+
   // Medalha pelos pontos
   const medalha = (pontos) => (pontos >= 80 ? "platina" : pontos >= 40 ? "ouro" : pontos >= 20 ? "prata" : pontos >= 10 ? "bronze" : null);
 
-  return { L, A, CHAO, RAIO, CANO_L, PASSARO_X, NIVEIS, criar, pular, passo, colideCano, medalha };
+  return { L, A, CHAO, RAIO, CANO_L, PASSARO_X, NIVEIS, criar, pular, passo, colideCano, redimensionar, medalha };
 });

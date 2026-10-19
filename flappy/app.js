@@ -14,6 +14,9 @@
   if (!F.NIVEIS[nivel]) nivel = "facil";
   let jogo;
   let escala = 1;
+  let largura = F.L; // largura do mundo, em unidades (a altura é sempre F.A)
+  let topoLivre = 30; // primeira altura do mundo abaixo do topo e do seletor
+  let ceuExtra = 0; // em telas compridas, quanto de céu sobra acima do mundo clássico
   let acumulado = 0;
   let ultimo = performance.now();
   let rolagem = 0; // quanto o cenário já andou (para as camadas do fundo)
@@ -29,36 +32,49 @@
 
   // Estrelas fixas e nuvens sorteadas uma vez
   const sorteio = C.sorteador(7);
-  const ESTRELAS = Array.from({ length: 34 }, () => ({ x: sorteio() * F.L, y: sorteio() * 260, r: 0.6 + sorteio() * 1.2, f: sorteio() * 6 }));
-  const NUVENS = Array.from({ length: 5 }, (_, i) => ({ x: i * 90 + sorteio() * 40, y: 250 + sorteio() * 70, l: 70 + sorteio() * 50 }));
+  // (posições em fração da tela, para servir em qualquer largura)
+  const ESTRELAS = Array.from({ length: 70 }, () => ({ x: sorteio(), y: sorteio() * 280, r: 0.6 + sorteio() * 1.2, f: sorteio() * 6 }));
+  const NUVENS = Array.from({ length: 12 }, () => ({ x: sorteio(), y: 250 + sorteio() * 70, l: 70 + sorteio() * 50 }));
 
   /* ---------- Tamanho ---------- */
 
+  // Tela cheia: a altura do mundo cabe na tela e a largura acompanha a da tela
   function dimensionar() {
     const area = $("#area");
-    const w = area.clientWidth - 24;
-    const h = area.clientHeight - 24;
-    escala = Math.max(0.5, Math.min(w / F.L, h / F.A, 1.6));
-    const cw = Math.round(F.L * escala);
-    const ch = Math.round(F.A * escala);
+    const cw = area.clientWidth;
+    const ch = area.clientHeight;
+    if (!cw || !ch) return;
+    if (cw / ch >= F.L / F.A) {
+      escala = ch / F.A;
+      ceuExtra = 0;
+    } else {
+      // Tela comprida (celular em pé): mantém a largura clássica e o céu cresce para cima
+      escala = cw / F.L;
+      ceuExtra = ch / escala - F.A;
+    }
+    largura = cw / escala;
     const dpr = window.devicePixelRatio || 1;
     tela.style.width = `${cw}px`;
     tela.style.height = `${ch}px`;
     tela.width = Math.round(cw * dpr);
     tela.height = Math.round(ch * dpr);
-    ctx.setTransform(dpr * escala * (cw / (F.L * escala)), 0, 0, dpr * escala * (ch / (F.A * escala)), 0, 0);
+    const sy = tela.height / (F.A + ceuExtra);
+    ctx.setTransform(tela.width / largura, 0, 0, sy, 0, ceuExtra * sy);
+    topoLivre = Math.max(20 - ceuExtra, ($(".barra-flappy").getBoundingClientRect().bottom + 6) / escala - ceuExtra);
+    if (jogo) F.redimensionar(jogo, largura, -ceuExtra);
   }
 
   /* ---------- Partida ---------- */
 
   function novo() {
     clearTimeout(painelTimer);
-    jogo = F.criar({ nivel });
+    jogo = F.criar({ nivel, largura, teto: -ceuExtra });
     antes = null;
     batidaEm = null;
     $("#painel-fim").hidden = true;
     $("#nivel-nome").textContent = cfg().nome;
-    $("#rodape").textContent = "toque, clique ou aperte espaço para voar";
+    $("#rodape").textContent = "toque em qualquer lugar, clique ou aperte espaço para voar";
+    document.body.classList.remove("voando");
     $("#recorde").textContent = lerRecordes()[nivel].melhor;
     montarListaNiveis();
   }
@@ -66,7 +82,11 @@
   function voar() {
     if (!$("#painel-fim").hidden) return;
     if (jogo.fim) return;
-    if (F.pular(jogo)) tocar("tecla", 7);
+    fecharLista();
+    if (F.pular(jogo)) {
+      tocar("tecla", 7);
+      document.body.classList.add("voando");
+    }
   }
 
   function lembrar() {
@@ -99,6 +119,7 @@
   function bater(agora) {
     batidaEm = agora;
     podeReiniciar = false;
+    document.body.classList.remove("voando");
     tocar("erro");
     try { navigator.vibrate && navigator.vibrate(40); } catch { /* sem vibração */ }
     const todos = lerRecordes();
@@ -135,17 +156,18 @@
 
   function desenhar(t, agora) {
     const g = ctx;
+    const LW = jogo.L;
     const tremida = batidaEm && agora - batidaEm < 260 ? (1 - (agora - batidaEm) / 260) * 5 : 0;
     g.save();
     if (tremida) g.translate((Math.random() - 0.5) * tremida, (Math.random() - 0.5) * tremida);
 
     // Céu
-    const ceu = g.createLinearGradient(0, 0, 0, F.CHAO);
+    const ceu = g.createLinearGradient(0, -ceuExtra, 0, F.CHAO);
     ceu.addColorStop(0, "#272b45");
     ceu.addColorStop(0.65, "#3e3d66");
     ceu.addColorStop(1, "#5b5384");
     g.fillStyle = ceu;
-    g.fillRect(-10, -10, F.L + 20, F.CHAO + 10);
+    g.fillRect(-10, -ceuExtra - 10, LW + 20, F.CHAO + ceuExtra + 10);
     const rol = lerp(rolagemAntes, rolagem, t);
 
     // Estrelas piscando e lua
@@ -153,19 +175,22 @@
       g.globalAlpha = 0.35 + 0.35 * Math.sin(agora / 700 + s.f);
       g.fillStyle = "#eceaf5";
       g.beginPath();
-      g.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      g.arc(s.x * LW, s.y * (1 + ceuExtra / 280) - ceuExtra, s.r, 0, Math.PI * 2);
       g.fill();
     }
     g.globalAlpha = 1;
     g.fillStyle = "#f6dc8a";
-    g.beginPath(); g.arc(226, 74, 20, 0, Math.PI * 2); g.fill();
+    const luaX = LW - 62;
+    const luaY = topoLivre + 44;
+    g.beginPath(); g.arc(luaX, luaY, 20, 0, Math.PI * 2); g.fill();
     g.fillStyle = "#3a3a5f";
-    g.beginPath(); g.arc(236, 68, 17, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(luaX + 10, luaY - 6, 17, 0, Math.PI * 2); g.fill();
 
     // Nuvens (bem devagar) e morros (um pouco mais rápido)
     g.fillStyle = "rgba(196, 176, 245, .16)";
-    for (const n of NUVENS) {
-      const x = ((((n.x - rol * 0.15) % 380) + 380) % 380) - 60;
+    const volta = Math.max(LW + 140, 420);
+    for (const n of NUVENS.slice(0, Math.max(5, Math.ceil(LW / 80)))) {
+      const x = ((((n.x * volta - rol * 0.15) % volta) + volta) % volta) - 120;
       nuvem(g, x, n.y, n.l);
     }
     morros(g, rol * 0.35, 372, 46, "#4a4677", 140);
@@ -179,18 +204,18 @@
 
     // Chão listrado
     g.fillStyle = "#3a3f5c";
-    g.fillRect(-10, F.CHAO, F.L + 20, F.A - F.CHAO + 10);
+    g.fillRect(-10, F.CHAO, LW + 20, F.A - F.CHAO + 10);
     g.fillStyle = "#7fdcae";
-    g.fillRect(-10, F.CHAO, F.L + 20, 12);
+    g.fillRect(-10, F.CHAO, LW + 20, 12);
     g.fillStyle = "#6bc89b";
     const off = rol % 24;
-    for (let x = -off - 24; x < F.L + 24; x += 24) {
+    for (let x = -off - 24; x < LW + 24; x += 24) {
       g.beginPath();
       g.moveTo(x, F.CHAO + 12); g.lineTo(x + 12, F.CHAO + 12); g.lineTo(x + 20, F.CHAO); g.lineTo(x + 8, F.CHAO);
       g.fill();
     }
     g.fillStyle = "rgba(0, 0, 0, .18)";
-    g.fillRect(-10, F.CHAO + 12, F.L + 20, 3);
+    g.fillRect(-10, F.CHAO + 12, LW + 20, 3);
 
     // Passarinho
     const p = jogo.passaro;
@@ -203,22 +228,23 @@
       g.textAlign = "center";
       g.textBaseline = "top";
       g.fillStyle = "rgba(20, 22, 36, .45)";
-      g.fillText(jogo.pontos, F.L / 2, 34);
+      g.fillText(jogo.pontos, LW / 2, topoLivre + 4);
       g.fillStyle = "#eceaf5";
-      g.fillText(jogo.pontos, F.L / 2, 30);
+      g.fillText(jogo.pontos, LW / 2, topoLivre);
     } else {
       // Tela inicial: convite para tocar
       g.textAlign = "center";
       g.textBaseline = "middle";
       g.font = "italic 800 38px 'Barlow Condensed', sans-serif";
       g.fillStyle = "rgba(20, 22, 36, .45)";
-      g.fillText("PRONTO?", F.L / 2, 152);
+      const yPronto = Math.max(152, topoLivre + 60);
+      g.fillText("PRONTO?", LW / 2, yPronto + 3);
       g.fillStyle = "#fbbb84";
-      g.fillText("PRONTO?", F.L / 2, 149);
+      g.fillText("PRONTO?", LW / 2, yPronto);
       g.font = "500 15px 'Space Grotesk', sans-serif";
       g.fillStyle = "#eceaf5";
       g.globalAlpha = 0.6 + 0.4 * Math.sin(agora / 260);
-      g.fillText("toque para voar", F.L / 2, 296);
+      g.fillText("toque para voar", LW / 2, 296);
       g.globalAlpha = 1;
     }
     g.restore();
@@ -226,7 +252,7 @@
     // Clarão da batida
     if (batidaEm && agora - batidaEm < 220) {
       g.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - (agora - batidaEm) / 220)})`;
-      g.fillRect(0, 0, F.L, F.A);
+      g.fillRect(0, -ceuExtra, LW, F.A + ceuExtra);
     }
   }
 
@@ -239,16 +265,16 @@
     g.fill();
   }
 
-  function morros(g, rol, base, alt, cor, largura) {
+  function morros(g, rol, base, alt, cor, passo) {
     g.fillStyle = cor;
     g.beginPath();
     g.moveTo(-10, F.CHAO);
-    const off = rol % largura;
-    for (let x = -off - largura; x <= F.L + largura; x += largura) {
+    const off = rol % passo;
+    for (let x = -off - passo; x <= jogo.L + passo; x += passo) {
       g.lineTo(x, base);
-      g.quadraticCurveTo(x + largura / 2, base - alt * 2, x + largura, base);
+      g.quadraticCurveTo(x + passo / 2, base - alt * 2, x + passo, base);
     }
-    g.lineTo(F.L + 10, F.CHAO);
+    g.lineTo(jogo.L + 10, F.CHAO);
     g.closePath();
     g.fill();
   }
@@ -278,12 +304,12 @@
       g.fillStyle = "rgba(255, 255, 255, .35)";
       g.fillRect(x + 4, y + 4, 5, 14);
     };
-    corpo(-10, topo - 22);
+    corpo(-ceuExtra - 10, topo - 22);
     boca(topo - 22);
     corpo(fundo + 22, F.CHAO);
     boca(fundo);
     g.fillStyle = "rgba(255, 255, 255, .25)";
-    g.fillRect(x + 8, -10, 4, topo - 22 + 10);
+    g.fillRect(x + 8, -ceuExtra - 10, 4, topo - 22 + ceuExtra + 10);
     g.fillRect(x + 8, fundo + 22, 4, F.CHAO - fundo - 22);
   }
 
@@ -362,11 +388,37 @@
 
   /* ---------- Controles ---------- */
 
-  $("#moldura").addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".painel-fim")) return;
+  // Tocar em qualquer lugar da tela voa (menos nos botões, no seletor e no painel de fim)
+  document.addEventListener("pointerdown", (e) => {
+    if (e.button > 0 || document.querySelector("dialog[open]")) return;
+    if (e.target.closest("button, a, dialog, .seletor-nivel, .painel-fim")) return;
     e.preventDefault();
     voar();
   });
+
+  /* ---------- Tela cheia de verdade (esconde a barra do navegador, onde der) ---------- */
+
+  const raizDoc = document.documentElement;
+  const pedirTelaCheia = raizDoc.requestFullscreen || raizDoc.webkitRequestFullscreen;
+  const sairTelaCheia = document.exitFullscreen || document.webkitExitFullscreen;
+  const emTelaCheia = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const botaoTela = $("#btn-tela-cheia");
+  if (!pedirTelaCheia || !(document.fullscreenEnabled || document.webkitFullscreenEnabled)) botaoTela.hidden = true;
+  const ICONE_ABRIR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  const ICONE_FECHAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  const atualizarBotaoTela = () => {
+    botaoTela.innerHTML = emTelaCheia() ? ICONE_FECHAR : ICONE_ABRIR;
+    botaoTela.setAttribute("aria-label", emTelaCheia() ? "Sair da tela cheia" : "Tela cheia");
+  };
+  botaoTela.addEventListener("click", () => {
+    try {
+      if (emTelaCheia()) sairTelaCheia.call(document);
+      else pedirTelaCheia.call(raizDoc);
+    } catch { /* o navegador não deixou */ }
+  });
+  document.addEventListener("fullscreenchange", atualizarBotaoTela);
+  document.addEventListener("webkitfullscreenchange", atualizarBotaoTela);
+  atualizarBotaoTela();
   document.addEventListener("keydown", (e) => {
     if (document.querySelector("dialog[open]") || e.repeat) return;
     if ([" ", "ArrowUp", "w", "W"].includes(e.key)) {

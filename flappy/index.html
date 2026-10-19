@@ -39,6 +39,7 @@
     </button>
     <div class="lista-letras" id="lista-niveis" role="listbox" hidden></div>
   </div>
+  <button class="icone tela-cheia" id="btn-tela-cheia" aria-label="Tela cheia"></button>
   <div class="recorde-barra" aria-label="Recorde">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>
     <strong id="recorde">0</strong>
@@ -65,18 +66,18 @@
   </div>
 </main>
 
-<p class="rodape-flappy" id="rodape">toque, clique ou aperte espaço para voar</p>
+<p class="rodape-flappy" id="rodape">toque em qualquer lugar, clique ou aperte espaço para voar</p>
 
 <dialog id="dlg-ajuda" aria-labelledby="ajuda-titulo">
   <button class="fechar" aria-label="Fechar">×</button>
   <h2 id="ajuda-titulo" tabindex="-1" autofocus>Como jogar</h2>
   <ol class="passos">
-    <li><b>Toque na tela</b> (ou aperte espaço, ↑ ou W) e o passarinho dá uma batida de asa para cima.</li>
+    <li><b>Toque em qualquer lugar da tela</b> (ou aperte espaço, ↑ ou W) e o passarinho dá uma batida de asa para cima.</li>
     <li><b>Passe entre os canos</b> sem encostar neles nem no chão. Cada cano vencido vale 1 ponto.</li>
     <li><b>O teto não machuca,</b> mas também não ajuda: o passarinho só fica parado lá.</li>
     <li><b>Medalhas:</b> bronze com 10 pontos, prata com 20, ouro com 40 e platina com 80.</li>
   </ol>
-  <p class="nota">Quanto mais difícil, menor o vão e mais rápido o cenário. No Impossível, os canos sobem e descem.</p>
+  <p class="nota">Quanto mais difícil, menor o vão e mais rápido o cenário. No Impossível, os canos sobem e descem. O botão de quadradinho ao lado do recorde deixa em tela cheia.</p>
   <button class="botao largo" id="btn-comecar">Bora voar</button>
 </dialog>
 

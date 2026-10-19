@@ -1,13 +1,21 @@
 /* Flappy: céu noturno em tons pastel, canos menta e um passarinho pêssego */
+/* Tela cheia: o jogo fica por trás de tudo; topo e seletor flutuam por cima do céu */
+.topo, .barra-flappy { position: relative; z-index: 2; }
 .barra-flappy {
   width: calc(100% - 24px);
   max-width: 516px;
   margin-top: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
+  transition: opacity .25s ease;
 }
+.barra-flappy .tela-cheia { margin-left: auto; }
+.barra-flappy .tela-cheia svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.barra-flappy .tela-cheia[hidden] { display: none; }
+.barra-flappy .tela-cheia[hidden] + .recorde-barra { margin-left: auto; }
+/* Voando: o seletor e a dica somem para não atrapalhar */
+body.voando .barra-flappy, body.voando .rodape-flappy { opacity: 0; pointer-events: none; }
 .seletor-nivel { position: relative; }
 .seletor-nivel .seletor-letras span { font-size: 1.05rem; }
 .seletor-nivel .lista-letras { left: 0; transform: none; min-width: 210px; }
@@ -17,12 +25,11 @@
 .recorde-barra svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .recorde-barra strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.6rem; line-height: 1; color: var(--texto); font-variant-numeric: tabular-nums; }
 
-.area-flappy { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.area-flappy { position: fixed; inset: 0; z-index: 0; }
 .moldura-flappy {
-  position: relative;
-  border-radius: 18px;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  box-shadow: 0 0 0 1px var(--linha-borda), 0 12px 34px rgba(0, 0, 0, .35);
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -39,7 +46,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 20px;
+  padding: 90px 20px 20px;
   background: rgba(30, 33, 52, .45);
   animation: aparecer .35s ease both;
   cursor: default;
@@ -76,7 +83,20 @@
 .fim-numeros b { font-family: var(--fonte-placar); font-weight: 800; font-size: 2rem; color: var(--texto); font-variant-numeric: tabular-nums; }
 .fim-acoes { display: grid; gap: 8px; width: min(240px, 100%); animation: subir .45s .2s cubic-bezier(.2, .9, .3, 1.2) both; }
 
-.rodape-flappy { margin: 0 0 18px; padding: 0 16px; font-size: .8rem; color: var(--texto-suave); text-align: center; }
+.rodape-flappy {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 2;
+  margin: 0;
+  padding: 0 16px;
+  font-size: .8rem;
+  color: var(--texto-suave);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
 
 .recordes-flappy { display: grid; gap: 8px; }
 .recordes-flappy > div { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 12px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }

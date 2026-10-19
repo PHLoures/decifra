@@ -52,6 +52,26 @@ test("passar pelo vão vale ponto; encostar no cano termina", () => {
   assert.ok(F.colideCano(e, c));
 });
 
+test("tela larga: canos nascem na borda direita e o passarinho fica perto da esquerda", () => {
+  const e = F.criar({ aleatorio: semente(5), largura: 800 });
+  assert.ok(e.passaro.x > F.PASSARO_X && e.passaro.x <= 210);
+  F.pular(e);
+  assert.equal(e.canos[0].x, 840);
+  for (let i = 0; i < 400; i++) { if (e.passaro.vy > 0 && e.passaro.y > 200) F.pular(e); F.passo(e); }
+  assert.ok(e.canos.length >= 4, "cabem vários canos numa tela larga");
+  F.redimensionar(e, 300);
+  const ultimo = e.canos[e.canos.length - 1].x;
+  assert.ok(ultimo > 300 - e.cfg.dist);
+});
+
+test("tela comprida: o céu continua para cima e o teto sobe junto", () => {
+  const e = F.criar({ aleatorio: semente(6), teto: -100 });
+  F.pular(e);
+  for (let i = 0; i < 80; i++) { F.pular(e); F.passo(e); e.canos = []; }
+  assert.ok(!e.fim);
+  assert.equal(e.passaro.y, -100 + F.RAIO);
+});
+
 test("medalhas", () => {
   assert.equal(F.medalha(9), null);
   assert.equal(F.medalha(10), "bronze");
