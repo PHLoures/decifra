@@ -1,0 +1,92 @@
+/* Flappy: céu noturno em tons pastel, canos menta e um passarinho pêssego */
+.barra-flappy {
+  width: calc(100% - 24px);
+  max-width: 516px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.seletor-nivel { position: relative; }
+.seletor-nivel .seletor-letras span { font-size: 1.05rem; }
+.seletor-nivel .lista-letras { left: 0; transform: none; min-width: 210px; }
+.seletor-nivel .opcao-letras strong { width: auto; text-align: left; font-size: 1.15rem; }
+.seletor-nivel .opcao-letras span { margin-left: auto; font-family: var(--fonte); font-size: .78rem; letter-spacing: 0; text-transform: none; }
+.recorde-barra { display: flex; align-items: center; gap: 6px; color: var(--ouro); }
+.recorde-barra svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.recorde-barra strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.6rem; line-height: 1; color: var(--texto); font-variant-numeric: tabular-nums; }
+
+.area-flappy { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.moldura-flappy {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--linha-borda), 0 12px 34px rgba(0, 0, 0, .35);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.moldura-flappy canvas { display: block; }
+
+.painel-fim {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(30, 33, 52, .45);
+  animation: aparecer .35s ease both;
+  cursor: default;
+}
+.painel-fim[hidden] { display: none; }
+.painel-fim > strong { font-family: var(--fonte-placar); font-style: italic; font-weight: 800; font-size: 2.4rem; line-height: 1; text-transform: uppercase; color: var(--ouro); text-shadow: 0 3px 0 rgba(20, 22, 36, .6); }
+.fim-caixa {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--painel);
+  border: 1px solid var(--linha-borda);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+  animation: subir .45s .1s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.medalha {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .06);
+  border: 2px dashed var(--linha-borda);
+  flex: none;
+}
+.medalha.bronze { background: radial-gradient(circle at 35% 30%, #f6c9a0, #d98a5a 60%, #a8613a); border: 3px solid #f3d3b6; }
+.medalha.prata { background: radial-gradient(circle at 35% 30%, #ffffff, #c9cedd 55%, #8e95ad); border: 3px solid #eef0f6; }
+.medalha.ouro { background: radial-gradient(circle at 35% 30%, #fff1b8, #f4c24f 55%, #c98d1c); border: 3px solid #fde9a6; }
+.medalha.platina { background: radial-gradient(circle at 35% 30%, #ffffff, #bfe6f7 50%, #8fb6f2); border: 3px solid #e6f6ff; box-shadow: 0 0 18px rgba(140, 203, 245, .6); }
+.medalha:not(:empty), .medalha[class*=" "] { animation: girarMedalha .7s .35s cubic-bezier(.3, 1.4, .5, 1) both; }
+.fim-numeros { display: grid; gap: 8px; }
+.fim-numeros div { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.fim-numeros span { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-suave); }
+.fim-numeros b { font-family: var(--fonte-placar); font-weight: 800; font-size: 2rem; color: var(--texto); font-variant-numeric: tabular-nums; }
+.fim-acoes { display: grid; gap: 8px; width: min(240px, 100%); animation: subir .45s .2s cubic-bezier(.2, .9, .3, 1.2) both; }
+
+.rodape-flappy { margin: 0 0 18px; padding: 0 16px; font-size: .8rem; color: var(--texto-suave); text-align: center; }
+
+.recordes-flappy { display: grid; gap: 8px; }
+.recordes-flappy > div { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 12px; background: rgba(36, 40, 62, .7); border: 1px solid var(--linha-borda); }
+.recordes-flappy strong { font-family: var(--fonte-placar); font-weight: 800; font-size: 1.2rem; letter-spacing: .06em; text-transform: uppercase; }
+.recordes-flappy span { font-size: .8rem; color: var(--texto-suave); text-align: right; }
+.recordes-flappy em { font-style: normal; font-family: var(--fonte-placar); font-weight: 800; font-size: 1.4rem; color: var(--ouro); min-width: 2.4em; text-align: right; }
+
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+@keyframes subir { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes girarMedalha { from { transform: scale(.2) rotate(-200deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .painel-fim, .fim-caixa, .fim-acoes, .medalha { animation: none !important; }
+}

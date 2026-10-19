@@ -29,6 +29,10 @@
       id: "memoria", nome: "Memória", descricao: "Vire as cartas e ache os pares", caminho: "memoria/",
       icone: '<rect x="3" y="6" width="9" height="13" rx="2"/><path d="M14.5 5.5l3.4.9a2 2 0 0 1 1.4 2.4l-2.4 9.1a2 2 0 0 1-2.4 1.4l-.5-.1"/><path d="M7.5 10.5l1 2 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2-.3z"/>',
     },
+    {
+      id: "flappy", nome: "Flappy", descricao: "Voe entre os canos sem bater", caminho: "flappy/",
+      icone: '<path d="M4 3v6M4 15v6M20 3v4M20 13v8"/><circle cx="11" cy="12" r="4"/><path d="M15 11.5l2.5.5-2.5 1M9 12.5c-1 1.5-2.5 1.5-3.5.5"/>',
+    },
   ];
   const atual = document.body.dataset.jogo;
 

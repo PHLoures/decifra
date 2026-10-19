@@ -1,5 +1,5 @@
 // Deixa o jogo funcionando sem internet. Ao mudar a lista de ARQUIVOS, aumente a VERSAO.
-const VERSAO = "v34";
+const VERSAO = "v35";
 const CACHE = `decifra-${VERSAO}`;
 const ARQUIVOS = [
   "./",
@@ -33,6 +33,10 @@ const ARQUIVOS = [
   "memoria/logica.js",
   "memoria/desenhos.js",
   "memoria/app.js",
+  "flappy/",
+  "flappy/estilo.css",
+  "flappy/logica.js",
+  "flappy/app.js",
   // As listas mais jogadas já ficam guardadas; as outras entram no cache na primeira vez
   "dados/4.txt",
   "dados/5.txt",
