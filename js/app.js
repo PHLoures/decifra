@@ -157,7 +157,8 @@
   // Primeira fase de um modo que ainda não terminou hoje (ou a de 5 letras, se todas acabaram)
   const entradaDo = (modo) => {
     const fases = fasesDo(modo);
-    return (fases.find((f) => !terminada(f.id)) || fases[1]).id;
+    // Trocar de modo sempre abre a fase de 5 letras
+    return (fases.find((f) => f.tamanho === 5) || fases[0]).id;
   };
 
   // Fecha a lista de tamanhos ao tocar fora dela (registrado uma vez só)
@@ -510,12 +511,12 @@
     if (k === "Enter") return revelando ? undefined : enviar();
     if (k === "Dica") return revelando ? undefined : usarDica();
     if (k === "Backspace") {
-      // Apaga a casa do cursor; se ela estiver vazia, a letra anterior (pulando as da dica)
+      // Apaga a casa do cursor; se ela estiver vazia, apaga a letra logo antes (pulando as da dica).
+      // Se a casa de trás também estiver vazia, só volta uma casa, sem apagar letras lá atrás.
       if (vazia(cursor) || travada(cursor)) {
         let i = cursor - 1;
-        while (i >= 0 && (travada(i) || vazia(i))) i--;
-        // Nada para apagar à esquerda: só volta uma casa
-        if (i < 0) {
+        while (i >= 0 && travada(i)) i--;
+        if (i < 0 || vazia(i)) {
           cursor = Math.max(0, cursor - 1);
           return desenhar();
         }
