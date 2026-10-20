@@ -16,6 +16,9 @@
   const RAIO = 12;
   const CANO_L = 52;
   const PASSARO_X = 80;
+  // Com o tempo de voo o cenário acelera: +1% por segundo, até 60% mais rápido
+  const ACELERACAO = 0.01;
+  const ACELERACAO_MAX = 0.6;
   // Em telas largas o passarinho fica um pouco mais para dentro, mas sempre perto da esquerda
   const posicaoX = (largura) => Math.round(Math.max(PASSARO_X, Math.min(largura * 0.28, 210)));
 
@@ -40,6 +43,8 @@
       iniciado: false,
       fim: false,
       passos: 0,
+      voo: 0, // passos desde o primeiro toque
+      vel: (NIVEIS[nivel] || NIVEIS.facil).vel,
     };
   }
 
@@ -74,9 +79,9 @@
     return bate(p.x, p.y, r, c.x, e.teto - 200, c.x + CANO_L, topo) || bate(p.x, p.y, r, c.x, fundo, c.x + CANO_L, CHAO);
   }
 
-  // Avança 1/60 s. Devolve { ponto, bateu }.
+  // Avança 1/60 s. Devolve { ponto, bateu, acelerou }.
   function passo(e) {
-    const r = { ponto: false, bateu: false };
+    const r = { ponto: false, bateu: false, acelerou: false };
     e.passos++;
     const p = e.passaro;
     if (!e.iniciado) {
@@ -91,12 +96,17 @@
       }
       return r;
     }
+    e.voo++;
+    const antes = e.vel;
+    e.vel = e.cfg.vel * (1 + Math.min(ACELERACAO_MAX, (e.voo / 60) * ACELERACAO));
+    // Avisa a cada 10% a mais de velocidade
+    if (Math.floor(e.vel / e.cfg.vel * 10 + 1e-9) > Math.floor(antes / e.cfg.vel * 10 + 1e-9)) r.acelerou = true;
     p.vy = Math.min(p.vy + GRAVIDADE, QUEDA_MAX);
     p.y += p.vy;
     if (p.y - RAIO < e.teto) { p.y = e.teto + RAIO; p.vy = 0; } // o teto não mata, só segura
 
     for (const c of e.canos) {
-      c.x -= e.cfg.vel;
+      c.x -= e.vel;
       if (e.cfg.sobeDesce) {
         const amp = 38;
         const lim = 60 + e.cfg.vao / 2;

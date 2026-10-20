@@ -23,6 +23,7 @@
   let rolagemAntes = 0;
   let antes = null; // posições do passo anterior, para desenhar suave entre passos
   let batidaEm = null;
+  let aceleradoEm = null; // quando apareceu o último aviso de "mais rápido!"
   let podeReiniciar = true;
   let painelTimer = null;
 
@@ -71,6 +72,7 @@
     jogo = F.criar({ nivel, largura, teto: -ceuExtra });
     antes = null;
     batidaEm = null;
+    aceleradoEm = null;
     $("#painel-fim").hidden = true;
     $("#nivel-nome").textContent = cfg().nome;
     $("#rodape").textContent = "toque em qualquer lugar, clique ou aperte espaço para voar";
@@ -104,11 +106,15 @@
       acumulado -= PASSO;
       lembrar();
       const estavaVivo = !jogo.fim;
-      if (!jogo.fim) rolagem += jogo.iniciado ? cfg().vel : 1;
+      if (!jogo.fim) rolagem += jogo.iniciado ? jogo.vel : 1;
       const r = F.passo(jogo);
       if (r.ponto) {
         tocar("moeda");
         $("#rodape").textContent = jogo.pontos === 1 ? "1 cano vencido" : `${jogo.pontos} canos vencidos`;
+      }
+      if (r.acelerou) {
+        aceleradoEm = agora;
+        tocar("dica");
       }
       if (r.bateu && estavaVivo) bater(agora);
     }
@@ -231,6 +237,16 @@
       g.fillText(jogo.pontos, LW / 2, topoLivre + 4);
       g.fillStyle = "#eceaf5";
       g.fillText(jogo.pontos, LW / 2, topoLivre);
+      // Aviso de que acelerou, logo abaixo dos pontos
+      if (aceleradoEm && agora - aceleradoEm < 1400 && !jogo.fim) {
+        const k = (agora - aceleradoEm) / 1400;
+        g.globalAlpha = k < 0.15 ? k / 0.15 : 1 - Math.max(0, (k - 0.6) / 0.4);
+        g.font = "italic 800 20px 'Barlow Condensed', sans-serif";
+        g.fillStyle = "#8ccbf5";
+        const vezes = (jogo.vel / cfg().vel).toFixed(1).replace(".", ",");
+        g.fillText(`MAIS RÁPIDO! ${vezes}×`, LW / 2, topoLivre + 62 - k * 6);
+        g.globalAlpha = 1;
+      }
     } else {
       // Tela inicial: convite para tocar
       g.textAlign = "center";

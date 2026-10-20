@@ -72,6 +72,24 @@ test("tela comprida: o céu continua para cima e o teto sobe junto", () => {
   assert.equal(e.passaro.y, -100 + F.RAIO);
 });
 
+test("o cenário acelera com o tempo, avisa a cada 10% e para em 60% a mais", () => {
+  const e = F.criar({ aleatorio: semente(7) });
+  F.pular(e);
+  let avisos = 0;
+  const vel = [];
+  for (let i = 1; i <= 60 * 90; i++) {
+    e.canos = [];
+    if (e.passaro.vy > 0 && e.passaro.y > 220) F.pular(e);
+    if (F.passo(e).acelerou) avisos++;
+    if (i % 600 === 0) vel.push(e.vel);
+  }
+  assert.ok(!e.fim);
+  for (let i = 1; i < vel.length; i++) assert.ok(vel[i] >= vel[i - 1]);
+  assert.ok(Math.abs(vel[0] / e.cfg.vel - 1.1) < 0.01, "depois de 10 s, 10% mais rápido");
+  assert.ok(Math.abs(e.vel / e.cfg.vel - 1.6) < 1e-9, "não passa de 60% a mais");
+  assert.equal(avisos, 6);
+});
+
 test("medalhas", () => {
   assert.equal(F.medalha(9), null);
   assert.equal(F.medalha(10), "bronze");
