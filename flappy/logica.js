@@ -16,12 +16,11 @@
   const RAIO = 12;
   const CANO_L = 52;
   const PASSARO_X = 80;
-  const PRIMEIRO = 260; // distância do bicho até o primeiro cano
   // Com o tempo de voo o cenário acelera: +1% por segundo, até 60% mais rápido
   const ACELERACAO = 0.01;
   const ACELERACAO_MAX = 0.6;
-  // Em telas largas o passarinho fica um pouco mais para dentro, mas sempre perto da esquerda
-  const posicaoX = (largura) => Math.round(Math.max(PASSARO_X, Math.min(largura * 0.28, 210)));
+  // O bicho fica um pouco para dentro da tela (mais ainda em telas largas), para o primeiro cano chegar logo
+  const posicaoX = (largura) => Math.round(Math.max(PASSARO_X, Math.min(largura * 0.4, 400)));
 
   // vão = abertura entre os canos; vel = quanto o cenário anda por passo; dist = espaço entre canos
   const NIVEIS = {
@@ -72,11 +71,7 @@
     if (e.fim) return false;
     if (!e.iniciado) {
       e.iniciado = true;
-      // O primeiro cano vem logo, a uma distância fixa do bicho (em tela larga não espera a borda),
-      // e os que cabem na tela já aparecem atrás dele
-      let x = e.passaro.x + PRIMEIRO;
-      novoCano(e, x);
-      while (x + e.cfg.dist <= e.L + 40) { x += e.cfg.dist; novoCano(e, x); }
+      novoCano(e, e.L + 5); // entra pela direita, logo depois da borda
     }
     e.passaro.vy = PULO;
     return true;
@@ -139,7 +134,7 @@
     e.canos = e.canos.filter((c) => c.x + CANO_L > -10);
     const ultimo = e.canos[e.canos.length - 1];
     // O próximo cano nasce sempre fora da tela, à direita
-    if (!ultimo || ultimo.x + e.cfg.dist <= e.L + 40) novoCano(e, ultimo ? ultimo.x + e.cfg.dist : e.L + 40);
+    if (!ultimo || ultimo.x + e.cfg.dist <= e.L + 40) novoCano(e, ultimo ? ultimo.x + e.cfg.dist : e.L + 5);
 
     if (p.y + RAIO >= CHAO || e.canos.some((c) => colideCano(e, c))) {
       if (p.y + RAIO >= CHAO) p.y = CHAO - RAIO;

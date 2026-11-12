@@ -54,10 +54,9 @@ test("passar pelo vão vale ponto; encostar no cano termina", () => {
 
 test("tela larga: canos nascem na borda direita e o passarinho fica perto da esquerda", () => {
   const e = F.criar({ aleatorio: semente(5), largura: 800 });
-  assert.ok(e.passaro.x > F.PASSARO_X && e.passaro.x <= 210);
+  assert.ok(e.passaro.x > F.PASSARO_X && e.passaro.x <= 400);
   F.pular(e);
-  assert.equal(e.canos[0].x, e.passaro.x + 260); // primeiro cano perto, mesmo em tela larga
-  assert.ok(e.canos.length >= 3);
+  assert.equal(e.canos[0].x, 805); // entra pela direita, logo depois da borda
   for (let i = 0; i < 400; i++) { if (e.passaro.vy > 0 && e.passaro.y > 200) F.pular(e); F.passo(e); }
   assert.ok(e.canos.length >= 4, "cabem vários canos numa tela larga");
   F.redimensionar(e, 300);
