@@ -10,7 +10,22 @@
   gap: 10px;
   transition: opacity .25s ease;
 }
+.barra-flappy .botao-bicho { padding: 0; display: grid; place-items: center; }
+.barra-flappy .botao-bicho canvas { display: block; }
 .barra-flappy .tela-cheia { margin-left: auto; }
+
+/* Janela de escolher o bichinho */
+.grupo-bichos { margin: 14px 0 8px !important; font-family: var(--fonte-placar); font-weight: 600; font-size: .78rem !important; letter-spacing: .18em; text-transform: uppercase; color: var(--texto-suave) !important; }
+.grade-bichos { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.opcao-bicho {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 4px 8px; border-radius: 14px; cursor: pointer;
+  background: rgba(36, 40, 62, .7); border: 1.5px solid var(--linha-borda); color: var(--texto);
+  font: 600 .74rem var(--fonte); transition: transform .12s ease, border-color .12s ease;
+}
+.opcao-bicho:hover { transform: translateY(-2px); border-color: var(--neon); }
+.opcao-bicho.atual { border-color: var(--ouro); background: rgba(251, 187, 132, .12); box-shadow: 0 0 0 1px var(--ouro); }
+.opcao-bicho span { text-align: center; line-height: 1.15; }
 .barra-flappy .tela-cheia svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .barra-flappy .tela-cheia[hidden] { display: none; }
 .barra-flappy .tela-cheia[hidden] + .recorde-barra { margin-left: auto; }

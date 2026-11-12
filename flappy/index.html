@@ -39,6 +39,7 @@
     </button>
     <div class="lista-letras" id="lista-niveis" role="listbox" hidden></div>
   </div>
+  <button class="icone botao-bicho" id="btn-bicho" aria-label="Trocar o bichinho"></button>
   <button class="icone tela-cheia" id="btn-tela-cheia" aria-label="Tela cheia"></button>
   <div class="recorde-barra" aria-label="Recorde">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>
@@ -76,10 +77,17 @@
     <li><b>Passe entre os canos</b> sem encostar neles nem no chão. Cada cano vencido vale 1 ponto.</li>
     <li><b>O teto não machuca,</b> mas também não ajuda: o passarinho só fica parado lá.</li>
     <li><b>Fica mais rápido com o tempo:</b> o cenário acelera um pouquinho a cada segundo de voo, até 60% mais rápido.</li>
+    <li><b>Troque o bichinho</b> no botão ao lado do nível: passarinhos de várias cores, abelha, morcego, pinguim, coruja, porquinho, fantasminha, dragãozinho e peixe voador.</li>
     <li><b>Medalhas:</b> bronze com 10 pontos, prata com 20, ouro com 40 e platina com 80.</li>
   </ol>
   <p class="nota">Quanto mais difícil, menor o vão e mais rápido o cenário. No Impossível, os canos sobem e descem; no <b>Insano</b>, sobem e descem mais alto e mais depressa, com o vão ainda menor. O botão de quadradinho ao lado do recorde deixa em tela cheia.</p>
   <button class="botao largo" id="btn-comecar">Bora voar</button>
+</dialog>
+
+<dialog id="dlg-bichos" aria-labelledby="bichos-titulo">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <h2 id="bichos-titulo" tabindex="-1" autofocus>Escolha o bichinho</h2>
+  <div id="lista-bichos"></div>
 </dialog>
 
 <dialog id="dlg-estatisticas" aria-labelledby="est-titulo">
@@ -91,6 +99,7 @@
 <script src="../js/som.js"></script>
 <script src="../js/comum.js"></script>
 <script src="logica.js"></script>
+<script src="bichos.js"></script>
 <script src="app.js"></script>
 <script src="../js/menu-jogos.js"></script>
 </body>

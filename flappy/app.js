@@ -5,11 +5,14 @@
 
   const C = window.Comum;
   const F = window.LogicaFlappy;
+  const B = window.BichosFlappy;
   const { $, el, guardado, tocar } = C;
 
   const PASSO = 1000 / 60;
   const MEDALHAS = { bronze: "bronze", prata: "prata", ouro: "ouro", platina: "platina" };
 
+  let bicho = guardado.ler("flappy:bicho", "passarinho");
+  if (!B.existe(bicho)) bicho = "passarinho";
   let nivel = guardado.ler("flappy:nivel", "facil");
   if (!F.NIVEIS[nivel]) nivel = "facil";
   let jogo;
@@ -330,7 +333,6 @@
   }
 
   function passarinho(g, x, y, vy, agora) {
-    const r = F.RAIO + 1;
     const ang = jogo.iniciado ? Math.max(-0.45, Math.min(1.3, vy * 0.085)) : 0;
     // Asa: bate rápido subindo, fica parada caindo
     const batendo = !jogo.fim && (!jogo.iniciado || vy < 3);
@@ -338,32 +340,66 @@
     g.save();
     g.translate(x, y);
     g.rotate(ang);
-    // sombra suave
-    g.fillStyle = "rgba(20, 22, 36, .25)";
-    g.beginPath(); g.ellipse(1, 3, r, r * 0.9, 0, 0, Math.PI * 2); g.fill();
-    // corpo
-    g.fillStyle = "#fbbb84";
-    g.beginPath(); g.ellipse(0, 0, r + 1, r * 0.92, 0, 0, Math.PI * 2); g.fill();
-    // barriga
-    g.fillStyle = "#fde0c2";
-    g.beginPath(); g.ellipse(2, 5, r * 0.62, r * 0.42, 0, 0, Math.PI * 2); g.fill();
-    // asa
-    g.fillStyle = "#f59a6a";
-    g.beginPath(); g.ellipse(-5, 1 - asa * 4, 7.5, 4.6 + asa * 1.5, -0.3 + asa * 0.35, 0, Math.PI * 2); g.fill();
-    // olho
-    g.fillStyle = "#fff";
-    g.beginPath(); g.arc(6, -5, 5, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "#2b2f45";
-    g.beginPath(); g.arc(jogo.fim ? 6 : 7.5, -5, 2.3, 0, Math.PI * 2); g.fill();
-    if (jogo.fim) {
-      // olhinho de "x" depois da batida
-      g.strokeStyle = "#2b2f45"; g.lineWidth = 1.6;
-      g.beginPath(); g.moveTo(3.5, -7.5); g.lineTo(8.5, -2.5); g.moveTo(8.5, -7.5); g.lineTo(3.5, -2.5); g.stroke();
-    }
-    // bico
-    g.fillStyle = "#f0857c";
-    g.beginPath(); g.moveTo(10, -1); g.quadraticCurveTo(19, 1, 10, 5); g.closePath(); g.fill();
+    B.desenhar(g, bicho, asa, jogo.fim);
     g.restore();
+  }
+
+  /* ---------- Escolher o bichinho ---------- */
+
+  // Miniatura num canvas pequeno (o bicho ocupa uns 40 de largura)
+  function miniatura(c, id, tam, asa = 0.4) {
+    const dpr = window.devicePixelRatio || 1;
+    c.width = tam * dpr;
+    c.height = tam * dpr;
+    c.style.width = c.style.height = `${tam}px`;
+    const g = c.getContext("2d");
+    const k = (tam / 46) * dpr;
+    g.setTransform(k, 0, 0, k, (tam / 2) * dpr, (tam / 2 + 1) * dpr);
+    g.clearRect(-30, -30, 60, 60);
+    B.desenhar(g, id, asa, false);
+  }
+
+  function atualizarBotaoBicho() {
+    let c = $("#btn-bicho").querySelector("canvas");
+    if (!c) { c = document.createElement("canvas"); $("#btn-bicho").appendChild(c); }
+    miniatura(c, bicho, 30);
+    $("#btn-bicho").setAttribute("aria-label", `Bichinho: ${B.LISTA.find((b) => b.id === bicho).nome} (trocar)`);
+  }
+
+  function abrirBichos() {
+    const raiz = $("#lista-bichos");
+    raiz.innerHTML = "";
+    for (const tipo of ["passarinho", "animal"]) {
+      raiz.appendChild(el("p", "grupo-bichos", tipo === "passarinho" ? "Passarinhos" : "Outros bichos"));
+      const grade = el("div", "grade-bichos");
+      for (const b of B.LISTA.filter((x) => x.tipo === tipo)) {
+        const op = el("button", `opcao-bicho${b.id === bicho ? " atual" : ""}`);
+        op.type = "button";
+        op.setAttribute("aria-pressed", String(b.id === bicho));
+        const c = document.createElement("canvas");
+        miniatura(c, b.id, 56);
+        op.append(c, el("span", "", b.nome));
+        // Passar o mouse (ou tocar) faz o bichinho bater asa
+        let anim = null;
+        const animar = () => {
+          const t0 = performance.now();
+          const passo = (t) => { miniatura(c, b.id, 56, Math.sin((t - t0) / 55)); if (anim) anim = requestAnimationFrame(passo); };
+          anim = requestAnimationFrame(passo);
+        };
+        op.addEventListener("pointerenter", animar);
+        op.addEventListener("pointerleave", () => { cancelAnimationFrame(anim); anim = null; miniatura(c, b.id, 56); });
+        op.addEventListener("click", () => {
+          bicho = b.id;
+          guardado.gravar("flappy:bicho", bicho);
+          tocar("dica");
+          atualizarBotaoBicho();
+          $("#dlg-bichos").close();
+        });
+        grade.appendChild(op);
+      }
+      raiz.appendChild(grade);
+    }
+    C.abrir("#dlg-bichos");
   }
 
   /* ---------- Nível (seletor com setinha) ---------- */
@@ -449,6 +485,7 @@
 
   /* ---------- Eventos ---------- */
 
+  $("#btn-bicho").addEventListener("click", (e) => { e.stopPropagation(); fecharLista(); abrirBichos(); });
   $("#btn-de-novo").addEventListener("click", () => { if (podeReiniciar) novo(); });
   $("#btn-compartilhar").addEventListener("click", () => {
     const m = F.medalha(jogo.pontos);
@@ -478,6 +515,7 @@
 
   C.prepararJanelas();
   C.ligarBotaoSom($("#btn-som"));
+  atualizarBotaoBicho();
   novo();
   dimensionar();
   requestAnimationFrame((t) => { ultimo = t; quadro(t); });

@@ -145,3 +145,14 @@ test("medalhas", () => {
   assert.equal(F.medalha(40), "ouro");
   assert.equal(F.medalha(100), "platina");
 });
+
+test("bichinhos: todos desenham sem erro, vivos e depois da batida", () => {
+  global.self = global;
+  require("../flappy/bichos.js");
+  const B = global.BichosFlappy;
+  assert.ok(B.LISTA.length >= 12);
+  assert.equal(new Set(B.LISTA.map((b) => b.id)).size, B.LISTA.length);
+  const g = new Proxy({}, { get: (o, k) => (k in o ? o[k] : () => {}), set: (o, k, v) => ((o[k] = v), true) });
+  for (const b of B.LISTA) for (const morto of [false, true]) B.desenhar(g, b.id, 0.5, morto);
+  assert.ok(B.existe("dragao") && !B.existe("unicornio"));
+});
