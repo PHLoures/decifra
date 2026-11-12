@@ -90,6 +90,54 @@ test("o cenário acelera com o tempo, avisa a cada 10% e para em 60% a mais", ()
   assert.equal(avisos, 6);
 });
 
+// Busca exata: existe alguma sequência de toques que vença "alvo" canos?
+// (todos os ramos têm os mesmos canos, então basta guardar um ramo por posição do passarinho)
+function existeCaminho(nivel, s, alvo) {
+  const sorteios = [];
+  const r = semente(s);
+  for (let i = 0; i < 400; i++) sorteios.push(r());
+  const comSorte = (e) => { e.aleatorio = () => sorteios[(e.n = (e.n || 0) + 1) - 1]; return e; };
+  const clonar = (e) => comSorte({ ...e, passaro: { ...e.passaro }, canos: e.canos.map((c) => ({ ...c })) });
+  const e0 = comSorte(F.criar({ nivel }));
+  F.pular(e0);
+  let fronteira = [e0];
+  for (let t = 0; t < 60 * 60 && fronteira.length; t++) {
+    const prox = new Map();
+    for (const e of fronteira) for (const pula of [false, true]) {
+      const n = clonar(e);
+      if (pula) F.pular(n);
+      F.passo(n);
+      if (n.fim) continue;
+      if (n.pontos >= alvo) return true;
+      const chave = `${Math.round(n.passaro.y * 2)},${Math.round(n.passaro.vy * 4)}`;
+      if (!prox.has(chave)) prox.set(chave, n);
+    }
+    fronteira = [...prox.values()];
+  }
+  return false;
+}
+
+test("Insano é mais difícil que o Impossível, mas sempre tem caminho", () => {
+  const imp = F.NIVEIS.impossivel;
+  const ins = F.NIVEIS.insano;
+  assert.ok(ins.vao < imp.vao && ins.vel > imp.vel && ins.dist < imp.dist);
+  assert.ok(ins.sobeDesce.amp > imp.sobeDesce.amp && ins.sobeDesce.ritmo < imp.sobeDesce.ritmo);
+  for (const s of [11, 22, 33]) assert.ok(existeCaminho("insano", s, 15), `partida ${s} sem saída`);
+});
+
+test("Insano: o vão de um cano nunca fica longe demais do anterior", () => {
+  const e = F.criar({ nivel: "insano", aleatorio: semente(9) });
+  F.pular(e);
+  const vistos = [];
+  for (let i = 0; i < 60 * 40; i++) {
+    e.passaro.y = 200; e.passaro.vy = 0; // fica fora do caminho, só para ver os canos
+    F.passo(e);
+    e.fim = false;
+    for (const c of e.canos) if (!vistos.includes(c)) vistos.push(c);
+  }
+  for (let i = 1; i < vistos.length; i++) assert.ok(Math.abs(vistos[i].base - vistos[i - 1].base) <= F.NIVEIS.insano.salto + 1e-9);
+});
+
 test("medalhas", () => {
   assert.equal(F.medalha(9), null);
   assert.equal(F.medalha(10), "bronze");

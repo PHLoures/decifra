@@ -27,7 +27,10 @@
     facil: { nome: "Fácil", vao: 150, vel: 1.8, dist: 185 },
     medio: { nome: "Médio", vao: 128, vel: 2.2, dist: 175 },
     dificil: { nome: "Difícil", vao: 110, vel: 2.6, dist: 165 },
-    impossivel: { nome: "Impossível", vao: 98, vel: 3.0, dist: 160, sobeDesce: true },
+    impossivel: { nome: "Impossível", vao: 98, vel: 3.0, dist: 160, sobeDesce: { amp: 38, ritmo: 40 } },
+    // Acima do Impossível: vão mais apertado, mais rápido e canos subindo e descendo mais e mais depressa
+    // (salto: o vão de um cano não fica longe demais do anterior, para nunca virar uma armadilha sem saída)
+    insano: { nome: "Insano", vao: 90, vel: 3.4, dist: 150, sobeDesce: { amp: 60, ritmo: 26 }, salto: 60 },
   };
 
   // teto: em telas compridas o céu continua acima do 0 (valor negativo)
@@ -50,8 +53,16 @@
 
   function novoCano(e, x) {
     const margem = 70;
-    const meio = margem + e.cfg.vao / 2 + e.aleatorio() * (CHAO - 2 * margem - e.cfg.vao);
-    e.canos.push({ x, meio, base: meio, fase: e.aleatorio() * Math.PI * 2, passou: false });
+    let meio = margem + e.cfg.vao / 2 + e.aleatorio() * (CHAO - 2 * margem - e.cfg.vao);
+    const anterior = e.canos[e.canos.length - 1];
+    let fase = e.aleatorio() * Math.PI * 2;
+    if (e.cfg.salto && anterior) {
+      // quanto mais rápido o cenário, menor o salto permitido (sempre dá tempo de chegar)
+      const salto = e.cfg.salto * (e.cfg.vel / e.vel);
+      meio = Math.max(anterior.base - salto, Math.min(anterior.base + salto, meio));
+      fase = anterior.fase + 0.6; // vizinhos ondulam quase juntos, como uma onda
+    }
+    e.canos.push({ x, meio, base: meio, fase, passou: false });
   }
 
   function pular(e) {
@@ -108,9 +119,9 @@
     for (const c of e.canos) {
       c.x -= e.vel;
       if (e.cfg.sobeDesce) {
-        const amp = 38;
+        const { amp, ritmo } = e.cfg.sobeDesce;
         const lim = 60 + e.cfg.vao / 2;
-        c.meio = Math.max(lim, Math.min(CHAO - lim, c.base + Math.sin(e.passos / 40 + c.fase) * amp));
+        c.meio = Math.max(lim, Math.min(CHAO - lim, c.base + Math.sin(e.passos / ritmo + c.fase) * amp));
       }
       if (!c.passou && c.x + CANO_L < p.x) {
         c.passou = true;
