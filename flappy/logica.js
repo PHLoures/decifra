@@ -32,6 +32,8 @@
     // Acima do Impossível: vão mais apertado, mais rápido e canos subindo e descendo mais e mais depressa
     // (salto: o vão de um cano não fica longe demais do anterior, para nunca virar uma armadilha sem saída)
     insano: { nome: "Insano", vao: 90, vel: 3.4, dist: 150, sobeDesce: { amp: 60, ritmo: 26 }, salto: 60 },
+    // O absurdo: vão quase do tamanho do bicho, cenário voando e canos chacoalhando sem parar
+    pesadelo: { nome: "Pesadelo", vao: 78, vel: 4.3, dist: 138, sobeDesce: { amp: 80, ritmo: 14 }, salto: 32 },
   };
 
   // teto: em telas compridas o céu continua acima do 0 (valor negativo)

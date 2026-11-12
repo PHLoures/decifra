@@ -126,6 +126,13 @@ test("Insano é mais difícil que o Impossível, mas sempre tem caminho", () => 
   for (const s of [11, 22, 33]) assert.ok(existeCaminho("insano", s, 15), `partida ${s} sem saída`);
 });
 
+test("Pesadelo: absurdo, mas sempre tem caminho", () => {
+  const ins = F.NIVEIS.insano;
+  const pes = F.NIVEIS.pesadelo;
+  assert.ok(pes.vao < ins.vao && pes.vel > ins.vel && pes.dist < ins.dist && pes.sobeDesce.amp > ins.sobeDesce.amp);
+  for (const s of [7, 14]) assert.ok(existeCaminho("pesadelo", s, 10), `partida ${s} sem saída`);
+});
+
 test("Insano: o vão de um cano nunca fica longe demais do anterior", () => {
   const e = F.criar({ nivel: "insano", aleatorio: semente(9) });
   F.pular(e);

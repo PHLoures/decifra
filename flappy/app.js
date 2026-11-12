@@ -412,7 +412,7 @@
     lista.innerHTML = "";
     const todos = lerRecordes();
     for (const [k, n] of Object.entries(F.NIVEIS)) {
-      const op = el("button", `opcao-letras${k === nivel ? " atual" : ""}`);
+      const op = el("button", `opcao-letras${k === nivel ? " atual" : ""}${k === "pesadelo" ? " pesadelo" : ""}`);
       op.type = "button";
       op.setAttribute("role", "option");
       op.setAttribute("aria-selected", k === nivel ? "true" : "false");
