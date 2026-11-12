@@ -16,6 +16,7 @@
   const RAIO = 12;
   const CANO_L = 52;
   const PASSARO_X = 80;
+  const PRIMEIRO = 260; // distância do bicho até o primeiro cano
   // Com o tempo de voo o cenário acelera: +1% por segundo, até 60% mais rápido
   const ACELERACAO = 0.01;
   const ACELERACAO_MAX = 0.6;
@@ -62,14 +63,18 @@
       meio = Math.max(anterior.base - salto, Math.min(anterior.base + salto, meio));
       fase = anterior.fase + 0.6; // vizinhos ondulam quase juntos, como uma onda
     }
-    e.canos.push({ x, meio, base: meio, fase, passou: false });
+    e.canos.push({ x, meio, base: meio, fase, passou: false, nasceu: e.passos });
   }
 
   function pular(e) {
     if (e.fim) return false;
     if (!e.iniciado) {
       e.iniciado = true;
-      novoCano(e, e.L + 40);
+      // O primeiro cano vem logo, a uma distância fixa do bicho (em tela larga não espera a borda),
+      // e os que cabem na tela já aparecem atrás dele
+      let x = e.passaro.x + PRIMEIRO;
+      novoCano(e, x);
+      while (x + e.cfg.dist <= e.L + 40) { x += e.cfg.dist; novoCano(e, x); }
     }
     e.passaro.vy = PULO;
     return true;

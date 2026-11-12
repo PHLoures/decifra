@@ -208,7 +208,10 @@
     // Canos
     for (const c of jogo.canos) {
       const a = antes && antes.canos.get(c);
+      // canos que nascem já dentro da tela aparecem suavemente
+      g.globalAlpha = Math.min(1, (jogo.passos - (c.nasceu || 0)) / 18);
       cano(g, a ? lerp(a.x, c.x, t) : c.x, a ? lerp(a.meio, c.meio, t) : c.meio);
+      g.globalAlpha = 1;
     }
 
     // Chão listrado
